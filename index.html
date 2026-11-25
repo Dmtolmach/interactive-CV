@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Interactive CV of Dmitry Tolmachev, Research Fellow at Aalto University: molecular simulation of soft and biological materials.">
 <title>Dmitry Tolmachev</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@1,600&family=Caveat:wght@600&family=Bebas+Neue&family=Lora:ital@0;1&family=Orbitron:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one full-screen "molecule" — circles are atoms, links are bonds. Root atom at centre, six branch atoms around it.
    Clicking an atom grows it and releases its children; clicking a leaf grows a card out of the circle. Pan and zoom freely. */
@@ -38,13 +38,7 @@ h1{font:700 clamp(22px,3.6vw,34px)/1.05 var(--display);margin:6px 0 4px;letter-s
 .links{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
 .links a{font:500 12px var(--mono);color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px}
 .links a:hover{border-color:var(--accent);color:var(--accent)}
-svg#map{position:relative;z-index:1;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
-#bgw{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
-#bgw span{position:absolute;white-space:nowrap;color:var(--muted);opacity:.1;line-height:1}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #bgw span{opacity:.13}}
-:root[data-theme="dark"] #bgw span{opacity:.13}
-@media (prefers-reduced-motion:no-preference){#bgw span{animation:bgf 22s ease-in-out infinite alternate}}
-@keyframes bgf{to{translate:0 -10px}}
+svg#map{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
 svg#map:active{cursor:grabbing}
 .link{stroke:var(--line);stroke-width:2;stroke-linecap:round}
 .node{cursor:pointer}
@@ -96,12 +90,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .card .muted{color:var(--muted);font-size:13px}
 .card a{color:var(--accent)}
 .card figure{margin:4px 0 0}
-.card figure.sketch{margin:14px auto 0;max-width:300px;opacity:.9}
-.sketch svg{width:100%;height:auto;display:block;overflow:visible}
-.sketch path,.sketch circle,.sketch rect,.sketch ellipse,.sketch polygon{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sketch .a{stroke:var(--accent)}.sketch .dash{stroke-dasharray:5 5}
-.sketch .f{fill:var(--panel);stroke:var(--muted)}.sketch .fa{fill:var(--accent);stroke:var(--accent)}
-.sketch text{fill:var(--muted);stroke:none;font-family:Caveat,var(--body);font-weight:600}.sketch .ta{fill:var(--accent)}
 .card img{width:100%;border-radius:10px;background:#fff;border:1px solid var(--line);display:block}
 .card figcaption{font-size:11px;color:var(--muted);margin-top:4px}
 .gal.lab3 figure{margin:0}.gal.lab3 .wide{grid-column:1/-1}.gal.lab3 img{height:220px;object-fit:cover}.gal.lab3 .wide img{height:auto;aspect-ratio:900/334;object-fit:cover}
@@ -141,7 +129,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .geo svg{width:100%;height:auto;display:block;background:var(--drop);border-radius:10px}
 .geo text{font:500 9px var(--mono);fill:var(--muted)}
 @media (prefers-reduced-motion:reduce){.scrim,.cap{transition:none}}
-.cap[hidden]{display:none}
 </style>
 
 <header>
@@ -154,15 +141,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
     <a href="https://scholar.google.com/citations?user=OQtj-R4AAAAJ" target="_blank" rel="noopener">Scholar</a>
     <a href="https://orcid.org/0000-0002-9699-100X" target="_blank" rel="noopener">ORCID</a>
     <a href="https://www.linkedin.com/in/dmitry-tolmachev-158806254/" target="_blank" rel="noopener">LinkedIn</a>
-    <a href="mailto:tolmach.dm@gmail.com" title="tolmach.dm@gmail.com">Email</a>
   </nav>
 </header>
 
-<div id="bgw" aria-hidden="true"></div>
 <svg id="map" role="img" aria-label="Diagram of connected circles: Dmitry's CV"></svg>
 
 <div class="cap" id="cap" aria-live="polite"></div>
 <div class="tools">
+  <div class="legend"><i></i>dashed = draft, to confirm<br>paper circle size = citations</div>
   <button class="tb" id="resetBtn" type="button">Reset view</button>
 </div>
 
@@ -257,9 +243,8 @@ function paperCard(p){
   ${p.ga ? `<figure><img src="ga/${esc(p.ga)}.jpg" alt="Graphical abstract of the paper" loading="lazy"><figcaption>${esc(p.ga_kind || "Graphical abstract")}</figcaption></figure>` : ""}`;
 }
 
-PUB.fields.forEach(f => { if (f.id === "methods") { f.summary = "Reviews on combining simulations with experiments and on modelling surfactants in oils."; f.period = f.period.replace("2009", String(Math.min(...PUB.papers.filter(p => p.field === "methods" && p.n !== 28).map(p => p.year)))); } });
 const fieldNodes = PUB.fields.map(f => {
-  const ps = PUB.papers.filter(p => p.field === f.id && p.n !== 28).sort((a, b) => b.year - a.year);
+  const ps = PUB.papers.filter(p => p.field === f.id).sort((a, b) => b.year - a.year);
   return N({ id:"f-"+f.id, label:f.short || f.name, col:FCOL[f.id], icon:PUB.icons[f.id], kind:"field",
     cap:`${f.period} · ${f.place}. ${f.summary}`,
     children: ps.map(p => ({ id:"p"+p.n, label:p.short || p.title, col:FCOL[f.id], img:p.ga, year:p.year, kind:"paper",
@@ -281,8 +266,7 @@ function mountMap(host){
   const W = 560, H = 330, info = host.querySelector(".mapinfo"), tip = box.querySelector(".maptip");
   const svg = d3.select(box).insert("svg", ":first-child").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img").attr("aria-label", "Interactive world map of my collaborations");
   const feats = topojson.feature(WORLD, WORLD.objects.countries).features.filter(f => f.id !== "010");
-  const aea = d3.geoAzimuthalEqualAreaRaw, fish = (l, p) => { const [x, y] = aea(l, p), r = Math.hypot(x, y); if (!r) return [0, 0]; const s = 2 * Math.pow(r / 2, .62) / r; return [x * s, y * s]; };
-  const proj = d3.geoProjection(fish).rotate([-17, -52]).clipAngle(130).fitExtent([[6, 6], [W - 6, H - 6]], {type:"MultiPoint", coordinates:[[-99, 28], [-48, -26], [86, 54], [-82, 45], [33, 70], [-10, 36]]});
+  const proj = d3.geoNaturalEarth1().fitExtent([[4, 4], [W - 4, H - 4]], {type:"MultiPoint", coordinates:[[-112, -34], [95, -34], [-112, 70], [95, 70]]});
   const path = d3.geoPath(proj), g = svg.append("g");
   const tint = c => RU_ERA.has(c) ? "var(--o)" : "var(--c)";
   g.selectAll("path.cty").data(feats).join("path").attr("class", d => "cty" + (NUM_ISO[d.id] ? " on" : "")).attr("d", path)
@@ -335,13 +319,21 @@ function geoSvg(){
   return `<div class="geo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Schematic map of collaborating cities">${g}</svg></div>
   <p class="muted">Schematic, not to scale of coastlines. Red arcs: St Petersburg years (2010–2022). Teal arcs: Aalto years (2022–now). Dot size grows with the number of joint papers.</p>`;
 }
-const geoNode = { id:"m-geo", label:"Collaboration geography", col:"--b-man", kind:"leaf", r:24, glyph:String(Object.keys(ctry).length + 1),
+const geoNode = { id:"m-geo", label:"Collaboration geography", col:"--b-man", kind:"group", glyph:String(Object.keys(ctry).length + 1),
   cap:`My co-authors are in ${Object.keys(ctry).length} countries across ${PUB.institutions.length} institutions, plus a UK partner through the 2026 CECAM workshop.`,
   card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Collaboration geography</h2>
     <div class="stats"><div><b>${Object.keys(ctry).length + 1}</b><span>countries</span></div><div><b>${PUB.institutions.length}</b><span>institutions</span></div><div><b>3</b><span>continents</span></div></div>
     <div class="geomap"><div class="maptip" hidden></div><div class="mapbtns"><button type="button" data-z="+" aria-label="Zoom in">+</button><button type="button" data-z="-" aria-label="Zoom out">−</button><button type="button" data-z="fi">Nordics</button><button type="button" data-z="0">World</button></div></div>
-    <div class="mapinfo"></div>`,
-  after: mountMap
+    <p class="muted">Drag to pan, use the buttons to zoom. Hover a city to see the institutions, click a city or a country to list them with the joint papers. Red: my St Petersburg years (2010–2022). Teal: my Aalto years (2022–now). Dot size grows with the number of joint papers.</p>
+    <div class="mapinfo"><p class="muted">Click a city or a highlighted country.</p></div>`,
+  after: mountMap,
+  children: Object.entries(ctry).concat([["GB", []]]).sort((a, b) => b[1].length - a[1].length).map(([c, ns]) => ({
+    id:"c-"+c, label:CN[c] || c, col:"--b-man", kind:"leaf", r: 11 + Math.sqrt(Math.max(ns.length, 1)) * 3.2, glyph:c,
+    card:() => { const ins = PUB.institutions.filter(i => i.country === c).concat((PUB.non_paper_collaborations || []).filter(i => i.country === c));
+      return `<div class="meta"><span class="tag acc">Collaboration geography</span><span>${ns.length} joint papers</span></div><h2>${esc(CN[c] || c)}</h2>
+      <ul>${ins.map(i => `<li><b>${esc(i.name)}</b>, ${esc(i.city)}${i.via ? ` (${esc(i.via)})` : ` · ${i.papers} paper${i.papers > 1 ? "s" : ""}`}</li>`).join("")}</ul>
+      ${ns.length ? `<h4>Joint papers</h4>${chips(ns)}` : ""}`; }
+  }))
 };
 
 const grants = [
@@ -367,10 +359,10 @@ const events = [
   {id:"hcp", n:"Modelling of Heterocyclic Polymers", y:"2016", t:"All-Russian conference with a scientific school \"Computer modelling of heterocyclic polymers\"", w:"St Petersburg", r:"Practical organization"}
 ];
 
-const phd = ["Zhenan Kou (2022–2025, completed)","Kourosh Hasheminejad (2024–2026, completed)","Adam Harmat (2023–2026)","Efstathia Mantzari (2024–2027)","Antti Mäkynen (2025–2028)","Yan Zheng (2025–2028)"];
+const phd = ["Zhenan Kou (2022–2025, completed)","Kourosh Hasheminejad (2024–2026, completed)","Adam Harmat (2023–2026)","Efstathia Mantzari (2024–2027)","Antti Mäkynen (2025–2028)","Yen Zheng (2025–2028)"];
 
 const management = { id:"b-man", label:"Management & leadership", col:"--b-man", icon:IC.man, kind:"branch",
-  cap:`I built a lab, managed about ${eur(totalEur)} in grants, advise 6 PhD students and have organized more than ten scientific events.`,
+  cap:`I built a lab, managed about ${eur(totalEur)} in grants, advise 6 PhD students and have organized more than ten scientific meetings.`,
   children:[
     { id:"m-lab", label:"Built a new lab", col:"--b-man", kind:"leaf", glyph:"LAB", r:24, photo:{src:"ph/imc-logo.png"},
       card:() => `<div class="meta"><span class="tag acc">Management</span><span>2017–2021 · IMC RAS, St Petersburg</span></div><h2>Built a laboratory from an empty room</h2>
@@ -384,24 +376,27 @@ const management = { id:"b-man", label:"Management & leadership", col:"--b-man",
       <div class="stats"><div><b>~10</b><span>people in the group</span></div><div><b>~7</b><span>students I instruct</span></div><div><b>4+</b><span>projects I am part of, over half of the group's</span></div></div>
       <p class="muted">Research Fellow 2022–2027, career stage R3: independent researcher capable of academic leadership. Member of the department's occupational safety group since 2022.</p>
       ${photoFig(PHOTOS["grp"])}<div class="chips"><button class="chip" type="button" data-goto="m-team">Students and theses</button></div>` },
-    { id:"m-grants", label:"Grants & budgets", col:"--b-man", kind:"leaf", r:24, glyph:"€3M",
+    { id:"m-grants", label:"Grants & budgets", col:"--b-man", kind:"group", glyph:"€3M",
       cap:`${grants.length} funded projects, about ${eur(totalEur)} in total. Three as Principal Investigator, three as Leading Investigator and Grant Manager.`,
       card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Grants and budgets</h2>
         <div class="stats"><div><b>${eur(totalEur)}</b><span>total managed</span></div><div><b>3</b><span>grants as PI</span></div><div><b>3</b><span>as Lead Investigator / Grant Manager</span></div></div>
-        ${grants.map(g => `<h4>${esc(g.y)} · ${esc(g.role)}</h4><p><b>${esc(g.t)}</b></p><p class="muted">${g.pi ? `${esc(g.pi)}. ` : ""}${esc(g.f)}. ${esc(g.d)}</p>${g.papers.length ? chips(g.papers) : ""}`).join("")}` },
+        ${grants.map(g => `<div><b>${eur(g.eur)}</b> <span class="muted">${esc(g.y)} · ${esc(g.role)}</span><div class="bar"><i style="width:${Math.max(2, g.eur / 20)}%"></i></div></div>`).join("")}`,
+      children: grants.map((g, i) => ({ id:"g"+i, label:g.s, col:"--b-man", kind:"leaf", r: 11 + Math.sqrt(g.eur) * .42, glyph:"€",
+        card:() => `<div class="meta"><span class="tag acc">Grant</span><span>${esc(g.y)}</span><span>${eur(g.eur)}</span></div><h2>${esc(g.t)}</h2>
+        <p><b>${esc(g.role)}</b>${g.pi ? `. ${esc(g.pi)}` : ""}. ${esc(g.f)}.</p><p>${esc(g.d)}</p>${g.papers.length ? `<h4>Related papers</h4>${chips(g.papers)}` : ""}` })) },
     { id:"m-team", label:"Teams & supervision", col:"--b-man", kind:"leaf", glyph:"16", r:22,
       card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Teams and supervision</h2>
         <div class="stats"><div><b>6</b><span>PhD theses advised</span></div><div><b>6</b><span>Master's theses</span></div><div><b>4</b><span>Bachelor's theses</span></div></div>
         <h4>Doctoral students (Aalto)</h4><ul>${phd.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
         <h4>Master's</h4><p class="muted">Aalto: Antti Mäkynen, Can Gürer Yücel, Linnéa Hammarberg (2025). St Petersburg State University: Georgy Mamistvalov (2021), Oksana Boyko (2019), Dmitry Ovodok (2018).</p>
         <h4>Bachelor's</h4><p class="muted">Aalto: Henri-Mikael Suominen (2026), Marika Laine (2025), Richard Sobek (2025). SPbU: Oksana Boyko (2017).</p>
-        <h4>Disciplines I work across</h4><div class="chips"><span class="chip">physics</span><span class="chip">physical chemistry</span><span class="chip">polymer science</span><span class="chip">protein engineering</span><span class="chip">wood and cellulose science</span><span class="chip">chemical engineering</span></div>
+        <h4>Disciplines I work across</h4><div class="chips"><span class="chip">physics</span><span class="chip">physical chemistry</span><span class="chip">polymer science</span><span class="chip">protein engineering</span><span class="chip">wood and cellulose science</span><span class="chip">chemical engineering</span><span class="chip">medicine</span></div>
         <p class="muted">Advisory groups for PhD students (Tiia Siivola, Efstathia Mantzari, 2025). State examination committee, SPbU (2021–2022). </p>
         ${chips([4,6,0])}` },
-    { id:"m-events", label:"Event organization", col:"--b-man", kind:"leaf", r:22, glyph:"●",
-      cap:"I have organized or chaired more than ten scientific events in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.",
-      card:() => `<div class="meta"><span class="tag acc">Management</span><span>${events.length} events</span></div><h2>Event organization</h2><p class="lead">I have organized or chaired more than ten scientific events in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.</p>
-        <ul class="tl">${events.map(e => `<li><b>${esc(e.y)}</b>${esc(e.t)}. <span class="muted">${esc(e.w)}. Role: ${esc(e.r)}${e.x ? `, ${esc(e.x)}` : ""}.</span></li>`).join("")}</ul>` },
+    { id:"m-events", label:"Event organization", col:"--b-man", kind:"group", glyph:"●",
+      cap:"I have organized or chaired more than ten scientific meetings in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.",
+      children: events.map((e, i) => ({ id:"e"+i, label:e.n, col:"--b-man", kind:"leaf", r: e.big ? 22 : 16, glyph:"●", photo: PHOTOS["ev-" + e.id],
+        card:() => `<div class="meta"><span class="tag acc">Event</span><span>${esc(e.y)}</span>${e.x ? `<span>${esc(e.x)}</span>` : ""}</div><h2>${esc(e.t)}</h2><p>${esc(e.w)}.</p><p><b>Role:</b> ${esc(e.r)}.</p>${photoFig(PHOTOS["ev-" + e.id])}` })) },
     geoNode,
     { id:"m-service", label:"Reviewing & service", col:"--b-man", kind:"leaf", glyph:"✓", r:15,
       card:() => `<div class="meta"><span class="tag acc">Service</span></div><h2>Reviewing and service</h2>
@@ -423,11 +418,11 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
   cap:"From general abilities to hard skills, each tied to papers where it shows.",
   children:[
     { id:"s-gen", label:"General", col:"--b-skl", kind:"group", glyph:"6", cap:"The habits behind the papers.", children:[
-      S("s-learn","Fast learner","As a scientist I am a fast learner. I moved from medical physics to polymer physics, then to cellulose, proteins and ferrofluids, each time publishing in the new field.",[28,27,8,29]),
-      S("s-prob","Problem solver","Every research question is a problem to solve: how to model the target system, and how to connect the model with experiment. Organizational work also needs problems solved on the fly. Once I had to break down and rebuild an entire wall in the lab within one day.",[16,10]),
-      S("s-bridge","Bridges experiment and simulation","Almost all of my work is done in collaboration with experimental groups. Bridging simulation and experiment is often not a trivial task. The specialists speak different languages, and the methods themselves are different in nature. I connect the two so that simulations explain what is measured.",[15,9,3,7,12]),
-      S("s-org","Organizer","I build the conditions for research: a new lab, grant reports, conferences and workshops.",[], `<div class="chips"><button class="chip" type="button" data-goto="m-lab">Built a new lab</button><button class="chip" type="button" data-goto="m-events">Event organization</button></div>`),
-      S("s-mentor","Mentor","I advise six doctoral students and have guided twelve Master's and Bachelor's theses.",[4,6], `<div class="chips"><button class="chip" type="button" data-goto="m-team">Teams & supervision</button></div>`),
+      S("s-learn","Fast learner","I moved from medicine to polymer physics, then to cellulose, proteins and ferrofluids, each time publishing in the new field.",[28,27,8,29],"",true),
+      S("s-prob","Problem solver","When simulations of polyelectrolytes disagreed with experiment, I traced the cause to ions over-binding in the force fields and showed how to fix it.",[16,10],"",true),
+      S("s-bridge","Bridges experiment and simulation","I work hand in hand with experimental groups so that simulations explain what they measure.",[15,9,3,7,12],"",true),
+      S("s-org","Organizer","I build the conditions for research: a new lab, grant reports, conferences and workshops.",[], `<div class="chips"><button class="chip" type="button" data-goto="m-lab">Built a new lab</button><button class="chip" type="button" data-goto="e0">CECAM workshop 2026</button></div>`,true),
+      S("s-mentor","Mentor","I advise six doctoral students and have guided twelve Master's and Bachelor's theses.",[4,6], `<div class="chips"><button class="chip" type="button" data-goto="m-team">Teams & supervision</button></div>`,true),
       S("s-comm","Science communicator","I explain science to non-specialists: Night of Museums tours, the Hermitage science exhibition, and multidisciplinary talks that introduce non-specialists to computational chemistry. I also design educational games that teach physics through play.",[],`<div class="chips"><button class="chip" type="button" data-goto="b-tea">Lectures & teaching</button><button class="chip" type="button" data-goto="g-sug">Educational game: Shut Up and Get Structured</button><button class="chip" type="button" data-goto="h-game">All my games</button></div>`)
     ]},
     { id:"s-comp", label:"Computational", col:"--b-skl", kind:"group", glyph:"MD", cap:"From quantum chemistry to coarse-grained models: the full ladder of simulation scales.", children:[
@@ -442,10 +437,9 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
         S("s-us","Umbrella sampling","Free-energy profiles along a chosen coordinate, for example how Na⁺ and Cl⁻ ions approach cellulose Iβ crystal surfaces.",[6]),
         S("s-mtd","Metadynamics","History-dependent bias to explore conformational landscapes: CaCl₂ with polyamino-acid brushes, and barnacle protein simulations (unpublished, in progress).",[13]),
         S("s-remd","Replica exchange MD","Parallel tempering to sample the conformations of anionic polyamino acids binding calcium ions (CaCl₂).",[14]),
-        S("s-fep","Alchemical free energy (FEP / TI)","Free-energy perturbation and thermodynamic integration for solvation and binding free energies. To be published soon.",[])
+        S("s-fep","Alchemical free energy (FEP / TI)","Free-energy perturbation and thermodynamic integration for solvation and binding free energies.",[],"",true)
       ]},
-      S("s-hpc","Linux & HPC","I work daily in Linux and run large simulations on high-performance computing clusters and supercomputers: job scripts, batch queues and parallel runs.",[]),
-      S("s-py","Python and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">Marketing consulting</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
+      S("s-py","Python, SQL and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">MENTE SPB</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
     ]},
     { id:"s-exp", label:"Experimental & data analysis", col:"--b-skl", kind:"group", glyph:"LAB", cap:"Hands-on lab methods and analysis of experimental data.", children:[
       S("s-saxs","SAXS","Small-angle X-ray scattering data analysis for ferrofluid structure.",[29]),
@@ -455,8 +449,8 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
       S("s-mic","Microscopy","Microscopy of ferrofluids; AFM combined with MD in a review.",[29,12]),
       S("s-cd","Circular dichroism (CD)","CD spectroscopy to follow the secondary structure of proteins and peptides.",[2]),
       S("s-ftir","FTIR","Infrared spectroscopy of chemical bonds and molecular structure.",[2,9]),
-      S("s-pcr","PCR","Polymerase chain reaction, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[], `<div class="chips"><button class="chip" type="button" data-goto="ed-bsc">BSc and my first paper</button></div>`),
-      S("s-ep","Electrophoresis","Gel electrophoresis, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[], `<div class="chips"><button class="chip" type="button" data-goto="ed-bsc">BSc and my first paper</button></div>`)
+      S("s-pcr","PCR","Polymerase chain reaction, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[28]),
+      S("s-ep","Electrophoresis","Gel electrophoresis, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[28])
     ]},
     { id:"s-lang", label:"Languages", col:"--b-skl", kind:"leaf", glyph:"Aa", r:16,
       card:() => `<div class="meta"><span class="tag acc">Skills</span></div><h2>Languages</h2><ul><li><b>Russian</b>: native</li><li><b>English</b>: C1</li><li><b>Finnish</b>: A2</li></ul>` }
@@ -467,9 +461,9 @@ const lectures = { id:"b-tea", label:"Lectures & teaching", col:"--b-tea", icon:
   card:() => `<div class="meta"><span class="tag acc">Teaching</span></div><h2>Lectures and teaching</h2><ul class="tl">${LECT.items.map(i => `<li><b>${esc(i.year)} · ${esc(i.type)}</b>${esc(i.title)}. <span class="muted">${esc(i.where)}${i.role ? ". " + esc(i.role) : ""}</span></li>`).join("")}</ul>
     <h4>Pedagogical training</h4><ul>${LECT.pedagogical_training.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`,
   children: LECT.items.map((it, i) => ({ id:"t"+i, label:it.year.split("–")[0] + " · " + it.type, col:"--b-tea", kind:"leaf",
-    r: /Night of Museums|Quantologoi|atomistic molecular dynamics/.test(it.title) ? 20 : /outreach/i.test(it.type) ? 13 : 16, glyph: it.length ? it.length.replace(" ", "") : "", guess: !!it.note,
-    photo: /Night of Museums/.test(it.title) ? {src:"ph/night-museums-2019.jpg"} : /Quantologoi/.test(it.title) ? {src:"ph/quantologoi.jpg"} : /atomistic molecular dynamics/.test(it.title) ? {src:"ph/turku-lecture.jpg"} : undefined,
-    card:() => `<div class="meta"><span class="tag acc">${esc(it.type)}</span><span>${esc(it.year)}</span>${it.length ? `<span>${esc(it.length)}</span>` : ""}${it.note ? guessTag(it.note) : ""}</div><h2>${esc(it.title)}</h2><p>${esc(it.where)}.</p>${it.role ? `<p><b>Role:</b> ${esc(it.role)}.</p>` : ""}${/Night of Museums/.test(it.title) ? `<div class="gal lab3"><figure><img src="ph/night-museums-2019.jpg" alt="Me guiding a group of visitors through the lab" loading="lazy"><figcaption>2019: guiding visitors through the lab</figcaption></figure><figure><img src="ph/night-museums-2017.jpg" alt="A young visitor meets a scrap-metal robot sculpture" loading="lazy"><figcaption>2017: a young visitor meets the art installation</figcaption></figure></div>` : ""}${/Quantologoi/.test(it.title) ? `<figure class="ph"><img src="ph/quantologoi.jpg" alt="Retro-futuristic exhibits of the Quantologoi exhibition in the Hermitage General Staff Building" loading="lazy"><figcaption>The Quantologoi exhibition, Hermitage General Staff Building, 2019. Still from a TV St Petersburg report.</figcaption></figure>` : ""}${/atomistic molecular dynamics/.test(it.title) ? `<figure class="ph"><img src="ph/turku-lecture.jpg" alt="Me giving the lecture in Turku" loading="lazy" style="max-width:240px"><figcaption>Giving the lecture at the University of Turku, 2026</figcaption></figure>` : ""}` }))
+    r: /Night of Museums/.test(it.title) ? 20 : /outreach/i.test(it.type) ? 13 : 16, glyph: it.length ? it.length.replace(" ", "") : "", guess: !!it.note,
+    photo: /Night of Museums/.test(it.title) ? {src:"ph/night-museums-2019.jpg"} : undefined,
+    card:() => `<div class="meta"><span class="tag acc">${esc(it.type)}</span><span>${esc(it.year)}</span>${it.length ? `<span>${esc(it.length)}</span>` : ""}${it.note ? guessTag(it.note) : ""}</div><h2>${esc(it.title)}</h2><p>${esc(it.where)}.</p>${it.role ? `<p><b>Role:</b> ${esc(it.role)}.</p>` : ""}${/Night of Museums/.test(it.title) ? `<div class="gal lab3"><figure><img src="ph/night-museums-2019.jpg" alt="Me guiding a group of visitors through the lab" loading="lazy"><figcaption>2019: guiding visitors through the lab</figcaption></figure><figure><img src="ph/night-museums-2017.jpg" alt="A young visitor meets a scrap-metal robot sculpture" loading="lazy"><figcaption>2017: a young visitor meets the art installation</figcaption></figure></div>` : ""}` }))
   .concat([{ id:"t-sup", label:"Thesis supervision", col:"--b-tea", kind:"leaf", glyph:"16", r:16,
     card:() => `<div class="meta"><span class="tag acc">Teaching</span></div><h2>Thesis supervision</h2><div class="stats"><div><b>${LECT.supervision.phd}</b><span>PhD</span></div><div><b>${LECT.supervision.msc}</b><span>Master's</span></div><div><b>${LECT.supervision.bsc}</b><span>Bachelor's</span></div></div><div class="chips"><button class="chip" type="button" data-goto="m-team">Names and years</button></div>` }])
 };
@@ -486,7 +480,7 @@ const hobbies = { id:"b-hob", label:"Hobbies", col:"--b-hob", icon:IC.hob, kind:
       card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>My photos</span></div><h2>Photography</h2><p class="lead">Wildlife and macro photography: birds, insects and animals, caught up close.</p>
       <div class="gal">${[1,2,3,4].map(i => `<img src="ph/hobby-photo-${i}.jpg" alt="Wildlife photo I took" loading="lazy">`).join("")}</div>` },
     { id:"h-cro", label:"Crocheting", col:"--b-hob", kind:"leaf", r:24, photo:{src:"ph/croch-1.jpg"},
-      card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>Made by me</span></div><h2>Crocheting</h2><p class="lead">I crochet toys with character.</p>
+      card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>Made by me</span></div><h2>Crocheting</h2><p class="lead">Crocheted creatures with character: a giant eyeball monster, a frog with a long red tongue, a many-eyed beetle, a capybara and a woolly sheep.</p>
       <div class="gal">${[1,2,3,4].map(i => `<img src="ph/croch-${i}.jpg" alt="Crocheted toy I made" loading="lazy">`).join("")}</div>` },
     { id:"h-game", label:"Educational game design", col:"--b-hob", kind:"group", glyph:"▲",
       cap:"I design educational games: one about dementia, and one that teaches phase transitions with a real 2D molecular dynamics simulation.",
@@ -500,21 +494,20 @@ const hobbies = { id:"b-hob", label:"Hobbies", col:"--b-hob", icon:IC.hob, kind:
   ]};
 
 const B = (id, label, glyph, text) => ({ id, label, col:"--b-biz", kind:"leaf", r:17, glyph,
-  card:() => `<div class="meta"><span class="tag acc">Marketing consulting</span><span>2017–2022</span></div><h2>${esc(label)}</h2><p class="lead">${text}</p>` });
-const mente = { id:"b-biz", label:"Marketing consulting", col:"--b-biz", photo:{src:"ph/lamente-logo.png"}, kind:"branch",
+  card:() => `<div class="meta"><span class="tag acc">MENTE SPB</span><span>2017–2022</span></div><h2>${esc(label)}</h2><p class="lead">${text}</p>` });
+const mente = { id:"b-biz", label:"MENTE SPB", col:"--b-biz", icon:IC.biz, kind:"branch",
   cap:"I was CEO and Market Intelligence Lead of a market-intelligence consultancy for small companies in St Petersburg, February 2017 to August 2022, part time alongside research.",
-  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>Marketing consulting, CEO</h2><img src="ph/lamente-logo.png" alt="La Mente logo: marketing as an art" style="width:140px;border:0;margin:0 0 10px"><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
+  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>MENTE SPB, CEO</h2><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
   children:[
     B("z-mkt","Market analysis & forecasting","↗","Market sizing, trend analysis and forecasts for client decisions."),
     B("z-ci","Competitive intelligence","◎","Structured monitoring of competitors and their moves."),
-    B("z-data","Python & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable analyses."),
+    B("z-rep","Decision reports for owners","▤","Clear reports and briefings for owners and managers of small companies, to support their decisions."),
+    B("z-data","Python, SQL & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable reports."),
     B("z-team","Led a cross-functional team","☰","I led analysts and specialists from different backgrounds as CEO.")
   ]};
 
-const firstPaper = () => { const p = byN[28]; return `<h4>My first paper</h4><p>My first paper, a ${p.year} clinical study of postpericardiotomy syndrome, comes from my medical-biophysics studies.</p><p class="muted">${esc(p.title)}. <i>${esc(p.venue)}</i>, ${p.year}.</p>`; };
-if (byN[27]) byN[27].short = "Cellulose–phosphate composite";
 const ED = (id, label, glyph, years, title, where, text) => ({ id, label, col:"--b-edu", kind:"leaf", r:22, glyph,
-  card:() => `<div class="meta"><span class="tag acc">Education</span><span>${esc(years)}</span></div><h2>${esc(title)}</h2><p>${esc(where)}.</p>${text ? `<p>${text}</p>` : ""}${id === "ed-bsc" ? firstPaper() : ""}${id === "ed-msc" ? `<h4>Papers from my Master's thesis</h4><p>My Master's work on bacterial cellulose and calcium phosphates led to a 2010 paper in Polymer Science and to my first-author paper in Langmuir.</p>${chips([26, 27])}` : ""}` });
+  card:() => `<div class="meta"><span class="tag acc">Education</span><span>${esc(years)}</span></div><h2>${esc(title)}</h2><p>${esc(where)}.</p>${text ? `<p>${text}</p>` : ""}${id === "ed-msc" ? chips([28]) : ""}` });
 const education = { id:"b-edu", label:"Education", col:"--b-edu", icon:IC.edu, kind:"branch",
   cap:"From medical biophysics to the physics of polymers: BSc 2008, MSc 2010, PhD 2015, all in St Petersburg.",
   card:() => `<div class="meta"><span class="tag acc">Education</span></div><h2>Education</h2><ul class="tl">
@@ -524,19 +517,19 @@ const education = { id:"b-edu", label:"Education", col:"--b-edu", icon:IC.edu, k
     <h4>Languages</h4><p>Russian (native), English (C1), Finnish (A2)</p>`,
   children:[
     ED("ed-phd","PhD 2015","PhD","2010–2015","PhD in physics of macromolecular compounds","Institute of Macromolecular Compounds, Russian Academy of Sciences (IMC RAS), St Petersburg","I did my PhD while working as a Junior Researcher in Prof. Sergey Lyulin's Laboratory of theory and modelling of polymer systems."),
-    ED("ed-msc","MSc 2010","MSc","2010","MSc in materials and technologies for medicine and biotechnology","Peter the Great St Petersburg Polytechnic University","Programme: physical and chemical basis for the development of new materials and technologies in medicine and biotechnology. Included 3 weeks of pedagogical training."),
+    ED("ed-msc","MSc 2010","MSc","2010","MSc in materials and technologies for medicine and biotechnology","Peter the Great St Petersburg Polytechnic University","Programme: physical and chemical basis for the development of new materials and technologies in medicine and biotechnology. Included 3 weeks of pedagogical training. My first paper, a 2009 clinical study of postpericardiotomy syndrome, comes from my medical-biophysics studies."),
     ED("ed-bsc","BSc 2008","BSc","2008","BSc in medical biophysics","Peter the Great St Petersburg Polytechnic University","Included a 119-hour course in psychology and pedagogy.")
   ]
 };
 const ROOT = { id:"root", label:"Dmitry Tolmachev", col:"--accent", kind:"root", r:58,
   cap:"Click any circle to open it. Drag to move, scroll or pinch to zoom.",
   card:() => `<div class="meta"><span class="tag acc">About</span><span>Espoo, Finland</span></div><h2>Dmitry Tolmachev</h2>
-    <p class="lead">I am a physicist trained in medical biophysics. I use molecular simulation to understand soft and biological materials.</p>
+    <p class="lead">I am a physicist trained in medical biophysics. I use molecular simulation to understand soft and biological materials. I also build labs, run grants, and once ran a consultancy.</p>
     <div class="stats"><div><b>${real.length}</b><span>publications</span></div><div><b>14</b><span>h-index</span></div><div><b>${eur(totalEur)}</b><span>grants managed</span></div><div><b>6</b><span>PhD students</span></div></div>
     <h4>Career</h4><ul class="tl">
     <li><b>2022 – 2027</b>Research Fellow, Aalto University, Soft Materials Modelling group (Prof. Maria Sammalkorpi)</li>
     <li><b>2017 – 2022</b>Researcher, then Senior Researcher, IMC RAS, Laboratory of polymer biomaterials (Prof. Mikko Karttunen)</li>
-    <li><b>2017 – 2022</b>CEO, marketing consulting company (part time)</li>
+    <li><b>2017 – 2022</b>CEO, MENTE SPB (part time)</li>
     <li><b>2010 – 2017</b>Junior Researcher, then Researcher, IMC RAS, theory and modelling of polymers (Prof. Sergey Lyulin)</li></ul>
     <h4>Degrees</h4><ul><li>PhD 2015, physics of macromolecular compounds, IMC RAS</li><li>MSc 2010 and BSc 2008, medical biophysics and biomaterials, Peter the Great St Petersburg Polytechnic University</li></ul>
     <p class="muted">ORCID 0000-0002-9699-100X · Scopus 36978290300</p>`,
@@ -655,63 +648,9 @@ function fit(n, dur = 800){
 const cap = document.getElementById("cap");
 function trail(n){ const a = []; for (let p = n; p; p = p.parent) a.unshift(p.label); return a.slice(1).join(" › ") || "Start here"; }
 function caption(n){
-  cap.hidden = !n.parent; if (cap.hidden) return;
   cap.innerHTML = `<div class="k">${esc(trail(n))}</div><h3>${esc(n.label)}</h3><p>${esc(n.cap || "")}</p>${n.card ? `<button class="tb" type="button" id="capMore">Open details</button>` : ""}`;
   const b = document.getElementById("capMore"); if (b) b.onclick = () => openCard(n, gN.selectAll("g.node").filter(d => d === n).node());
 }
-
-/* ---------- hand-drawn sketches for cards without pictures ---------- */
-const SKF = `<defs><filter id="skr" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter></defs>`;
-const c_ = (x, y, r, cls = "") => `<circle cx="${x}" cy="${y}" r="${r}" class="${cls}"/>`;
-const p_ = (d, cls = "") => `<path d="${d}" class="${cls}"/>`;
-const t_ = (x, y, s, cls = "", fs = 13) => `<text x="${x}" y="${y}" class="${cls}" font-size="${fs}">${s}</text>`;
-const head = (x, y, s = 1, cls = "") => c_(x, y, 7 * s, cls) + p_(`M${x - 11 * s} ${y + 24 * s} Q${x} ${y + 4 * s} ${x + 11 * s} ${y + 24 * s}`, cls);
-const atom = (x, y, r = 7, cls = "f") => c_(x, y, r, cls);
-const chain = (pts, cls = "") => p_("M" + pts.map(p => p.join(" ")).join(" L"), cls) + pts.map(p => atom(p[0], p[1], 5, cls ? "fa" : "f")).join("");
-const SK = {
-  root: head(60, 60, 2) + p_("M98 40 Q110 20 140 22 Q190 18 196 48 Q200 78 160 80 Q128 84 112 70 L96 82 L102 64 Q94 54 98 40") + chain([[130, 58], [146, 42], [164, 54], [180, 40]], "a"),
-  "b-sci": p_("M40 20 h20 M44 20 v30 L24 96 Q22 104 30 104 h40 Q78 104 76 96 L56 50 V20") + p_("M30 82 h40", "a") + chain([[120, 70], [140, 48], [162, 62], [184, 40], [206, 56]], "a") + c_(48, 92, 3, "fa") + c_(40, 86, 2, "fa"),
-  "m-deputy": c_(120, 22, 11) + c_(120, 60, 11, "a") + t_(112, 65, "#2", "ta", 11) + [70, 120, 170].map(x => c_(x, 100, 9)).join("") + p_("M120 33 V49 M120 71 V80 M70 80 H170 M70 80 V91 M120 80 V91 M170 80 V91"),
-  "m-grants": p_("M40 14 h70 l16 16 v80 h-86 Z M110 14 v16 h16 M54 46 h54 M54 60 h54 M54 74 h36") + [0, 1, 2, 3].map(i => `<ellipse cx="180" cy="${98 - i * 12}" rx="26" ry="8" class="a"/>`).join("") + t_(173, 66, "€", "ta", 20),
-  "m-team": `<ellipse cx="120" cy="82" rx="70" ry="18"/>` + [[60, 40], [95, 26], [145, 26], [180, 40], [80, 96], [160, 96]].map(([x, y], i) => head(x, y - 6, .8, i < 2 ? "a" : "")).join(""),
-  "m-events": p_("M96 40 h48 v14 h-48 Z M104 54 l-6 50 h44 l-6 -50") + t_(106, 51, "CECAM", "ta", 9) + [30, 60, 180, 210].map(x => head(x, 84, .8)).join("") + p_("M150 22 q20 -14 40 0", "a"),
-  "m-service": p_("M40 12 h70 v96 h-70 Z M52 30 h46 M52 44 h46 M52 58 h30") + c_(140, 64, 24, "a") + p_("M157 81 L190 108", "a") + p_("M128 64 l8 9 l16 -18", "a"),
-  "s-learn": p_("M10 104 h40 v-20 h45 v-20 h45 v-20 h45 v-20 h45") + p_("M24 96 c-6 -8 6 -14 6 -4 c0 -10 12 -4 6 4 l-6 7 z", "a") + chain([[62, 74], [72, 66], [82, 74]], "") + p_("M110 52 q12 -14 22 0 q-12 10 -22 0 M110 52 l22 0", "a") + p_("M155 36 c6 -10 12 10 18 0 c6 -10 12 10 18 0") + p_("M206 20 v-10 h18 v10 M206 20 a9 9 0 0 0 18 0", "a"),
-  "s-prob": [0, 1, 2, 3].map(r => [0, 1, 2, 3, 4].map(c => `<rect x="${30 + c * 30 + (r % 2) * 15}" y="${30 + r * 18}" width="28" height="16" rx="2" class="${r === 1 && c === 2 ? "a" : ""}"/>`).join("")).join("") + p_("M196 20 l20 -6 l4 12 l-20 6 z M206 30 L190 70", "a"),
-  "s-bridge": p_("M20 100 Q120 10 220 100 M20 100 H220") + [60, 90, 120, 150, 180].map(x => p_(`M${x} 100 V${100 - (1 - Math.pow((x - 120) / 100, 2)) * 64}`)).join("") + p_("M22 60 h16 M26 60 v16 l-10 22 h28 l-10 -22 v-16", "a") + `<rect x="190" y="52" width="36" height="26" rx="3" class="a"/>` + p_("M200 86 h16", "a"),
-  "s-org": `<rect x="40" y="24" width="160" height="84" rx="6"/>` + p_("M40 44 H200 M70 16 v14 M170 16 v14") + [0, 1, 2, 3, 4, 5, 6, 7].map(i => p_(`M${58 + (i % 4) * 38} ${62 + Math.floor(i / 4) * 26} l6 7 l12 -12`, i % 3 ? "" : "a")).join(""),
-  "s-mentor": head(50, 40, 1.4, "a") + `<rect x="90" y="16" width="120" height="60" rx="4"/>` + chain([[110, 56], [130, 36], [150, 50], [175, 30], [195, 44]], "") + p_("M68 56 L104 42", "a") + [120, 160, 200].map(x => head(x, 92, .7)).join(""),
-  "s-comm": head(46, 56, 1.4, "a") + p_("M80 20 h120 q10 0 10 10 v40 q0 10 -10 10 h-90 l-16 14 l2 -14 h-6 q-10 0 -10 -10 v-40 q0 -10 10 -10") + `<ellipse cx="145" cy="50" rx="26" ry="9" class="a"/><ellipse cx="145" cy="50" rx="26" ry="9" transform="rotate(60 145 50)" class="a"/><ellipse cx="145" cy="50" rx="26" ry="9" transform="rotate(-60 145 50)" class="a"/>` + c_(145, 50, 3, "fa"),
-  "s-qm": c_(120, 60, 5, "fa") + p_("M120 60 C80 20 60 40 70 60 C60 80 80 100 120 60 C160 20 180 40 170 60 C180 80 160 100 120 60", "a") + p_("M120 60 C100 10 140 10 120 60 C100 110 140 110 120 60"),
-  "s-dft": [14, 26, 40, 56].map((r, i) => `<ellipse cx="120" cy="60" rx="${r + 30}" ry="${r}" class="${i ? "" : "a"}"/>`).join("") + c_(95, 60, 6, "fa") + c_(145, 60, 6, "fa") + t_(196, 22, "ρ(r)", "ta", 14),
-  "s-aimd": chain([[60, 70], [90, 50], [120, 66], [150, 46]], "") + p_("M150 46 q30 -30 50 0 t40 10", "a dash") + `<ellipse cx="90" cy="50" rx="20" ry="9" class="a"/>` + p_("M20 100 l10 -16 l8 10 l12 -18", "a"),
-  "s-md": `<rect x="40" y="14" width="160" height="92" rx="4"/>` + [[70, 40], [120, 34], [168, 50], [90, 78], [146, 84], [60, 90]].map(([x, y], i) => atom(x, y, 7) + p_(`M${x} ${y} l${[18, -14, 10, 20, -16, 14][i]} ${[-10, 12, 16, -6, -12, -14][i]}`, "a")).join(""),
-  "s-cg": [[60, 40], [70, 56], [54, 62], [140, 40], [152, 54], [136, 64], [96, 84], [112, 92], [92, 100]].map(([x, y]) => atom(x, y, 5)).join("") + c_(61, 53, 18, "a") + c_(143, 52, 18, "a") + c_(100, 92, 16, "a") + p_("M78 60 L126 52 M74 66 L88 80 M128 64 L114 80", "a"),
-  "s-bd": p_("M30 90 l14 -10 l-6 -14 l18 4 l10 -16 l-14 -8 l20 -10 l12 14 l14 -6 l-4 18 l20 6 l10 -14 l16 2 l-6 -18 l20 -10 l14 16", "a") + atom(30, 90, 7) + atom(204, 34, 7, "fa"),
-  "s-ff": atom(50, 50, 9) + p_("M59 50 l6 -8 l6 16 l6 -16 l6 16 l6 -16 l6 8", "a") + atom(105, 50, 9) + p_("M150 100 Q160 20 180 70 Q200 110 230 40") + p_("M140 104 H234 M140 104 V20") + c_(178, 64, 3, "fa"),
-  "s-us": p_("M20 70 Q60 20 90 60 Q120 100 150 50 Q180 10 220 70") + [50, 90, 130, 170, 200].map(x => p_(`M${x - 18} 30 Q${x} 110 ${x + 18} 30`, "a dash")).join(""),
-  "s-mtd": p_("M20 40 Q60 110 100 70 Q120 50 140 74 Q180 110 220 40") + [[60, 82], [70, 78], [64, 72], [160, 84], [170, 80]].map(([x, y]) => p_(`M${x - 14} ${y + 10} Q${x} ${y - 14} ${x + 14} ${y + 10}`, "a")).join(""),
-  "s-remd": [0, 1, 2, 3].map(i => p_(`M30 ${24 + i * 24} H210`) + t_(8, 28 + i * 24, ["T1", "T2", "T3", "T4"][i], "", 11)).join("") + p_("M80 24 l20 24 M100 24 l-20 24 M150 72 l20 24 M170 72 l-20 24 M120 48 l16 24 M136 48 l-16 24", "a"),
-  "s-fep": chain([[30, 60], [50, 44], [70, 60]], "") + p_("M100 60 h40 m-8 -6 l8 6 l-8 6", "a") + chain([[170, 60], [190, 44], [210, 60]], "a") + p_("M40 100 H200") + c_(120, 100, 6, "fa") + t_(32, 116, "λ=0", "", 10) + t_(186, 116, "λ=1", "", 10),
-  "s-hpc": [0, 1, 2].map(i => `<rect x="${30 + i * 50}" y="14" width="40" height="92" rx="3"/>` + [0, 1, 2, 3, 4].map(j => p_(`M${36 + i * 50} ${28 + j * 16} h18`) + c_(62 + i * 50, 28 + j * 16, 2, (i + j) % 2 ? "fa" : "f")).join("")).join("") + `<rect x="184" y="40" width="50" height="40" rx="3" class="a"/>` + t_(190, 64, "$ _", "ta", 12),
-  "s-py": t_(20, 70, "{ }", "ta", 34) + [0, 1, 2].map(i => `<rect x="${86 + i * 42}" y="48" width="30" height="24" rx="3"/>` + p_(`M${116 + i * 42} 60 h12`, "a")).join("") + p_("M214 84 V40 M214 84 h20 M216 76 l6 -10 l6 4 l6 -14", "a"),
-  "s-lang": p_("M20 20 h80 v34 h-56 l-12 10 v-10 h-12 z") + t_(30, 43, "Привет", "", 12) + p_("M90 64 h70 v34 h-50 l-12 10 v-10 h-8 z", "a") + t_(102, 87, "Hello", "ta", 13) + p_("M168 22 h56 v34 h-12 v10 l-12 -10 h-32 z") + t_(182, 45, "Moi!", "", 13),
-  "b-edu": p_("M70 40 L120 20 L170 40 L120 60 Z M90 48 v20 q30 16 60 0 v-20 M166 42 v26", "a") + [0, 1, 2].map(i => `<rect x="${60 + i * 6}" y="${84 + i * 0}" width="120" height="10" rx="2" transform="translate(0 ${i * 10 - 10})"/>`).join(""),
-  "ed-phd": p_("M30 40 L70 24 L110 40 L70 56 Z M46 46 v16 q24 12 48 0 v-16", "a") + chain([[130, 80], [150, 60], [170, 76], [190, 56], [212, 70], [226, 50]], ""),
-  "ed-msc": p_("M20 90 Q80 70 120 84 T220 76 M20 98 Q80 78 120 92 T220 84") + [[60, 60], [110, 54], [160, 62], [196, 50]].map(([x, y]) => `<polygon points="${x},${y - 10} ${x + 9},${y - 4} ${x + 9},${y + 6} ${x},${y + 12} ${x - 9},${y + 6} ${x - 9},${y - 4}" class="a"/>`).join(""),
-  "ed-bsc": p_("M10 70 h50 l8 -30 l10 56 l10 -40 l6 14 h50", "a") + p_("M170 14 C200 34 150 54 180 74 C210 94 160 104 170 110 M200 14 C170 34 220 54 190 74 C160 94 210 104 200 110") + [24, 44, 64, 84].map(y => p_(`M176 ${y} h18`)).join(""),
-  "b-tea": `<rect x="40" y="14" width="160" height="80" rx="4"/>` + p_("M60 74 Q90 30 120 60 T180 40", "a") + p_("M120 94 v18 M100 112 h40"),
-  t1: head(40, 60, 1.3, "a") + `<rect x="80" y="14" width="150" height="86" rx="4"/>` + p_("M96 86 V28 M96 86 H216") + p_("M100 80 Q130 80 150 50 T210 36", "a") + t_(160, 82, "T", "", 11),
-  t2: `<rect x="30" y="14" width="180" height="86" rx="4"/>` + [[70, 40], [100, 56], [130, 40], [160, 60], [86, 78], [150, 82]].map(([x, y]) => atom(x, y, 6)).join("") + p_("M70 40 L100 56 L130 40 M100 56 L86 78", "a"),
-  t3: [0, 1, 2].map(i => `<rect x="30" y="${12 + i * 34}" width="180" height="26" rx="3" class="${i === 1 ? "a" : ""}"/>` + t_(36, 30 + i * 34, `[${i + 1}]`, i === 1 ? "ta" : "", 10) + p_(`M62 ${25 + i * 34} h${[90, 120, 60][i]}`)).join(""),
-  "t-sup": [0, 1, 2, 3].map(i => `<rect x="${70 - i * 4}" y="${90 - i * 16}" width="100" height="14" rx="2" class="${i === 3 ? "a" : ""}"/>`).join("") + p_("M100 24 L130 12 L160 24 L130 36 Z M156 26 v14", "a"),
-  "z-mkt": p_("M30 100 H220 M30 100 V14") + p_("M36 86 L70 70 L100 78 L140 50", "") + p_("M140 50 L180 36 L214 20", "a dash") + c_(140, 50, 4, "fa"),
-  "z-ci": c_(80, 60, 26) + c_(160, 60, 26) + p_("M106 60 h28 M54 60 l-14 -30 M186 60 l14 -30") + c_(80, 60, 10, "a") + c_(160, 60, 10, "a"),
-  "z-data": [[30, 40], [40, 70], [26, 90], [50, 30], [56, 96]].map(([x, y]) => `<rect x="${x}" y="${y}" width="10" height="10"/>`).join("") + p_("M80 30 H140 L118 64 V96 H102 V64 Z", "a") + p_("M160 100 V64 M180 100 V44 M200 100 V54 M220 100 V30") + p_("M150 100 H230"),
-  "z-team": [[60, 40], [120, 24], [180, 40], [90, 90], [150, 90]].map(([x, y], i) => head(x, y, .9, i === 1 ? "a" : "")).join("") + p_("M120 50 L60 70 M120 50 L180 70 M120 50 L90 100 M120 50 L150 100", "dash"),
-  "h-game": p_("M60 50 q60 -20 120 0 q24 10 20 40 q-4 20 -24 10 l-20 -14 h-52 l-20 14 q-20 10 -24 -10 q-4 -30 20 -40") + p_("M86 62 v20 M76 72 h20", "a") + c_(156, 66, 5, "fa") + c_(170, 78, 5, "f")
-};
-function sketchFor(d){ const s = SK[d.id]; return s ? `<figure class="sketch" aria-hidden="true"><svg viewBox="0 0 240 120">${SKF}<g filter="url(#skr)">${s}</g></svg></figure>` : ""; }
 
 /* ---------- card that grows out of the circle ---------- */
 const stage = document.getElementById("stage"), card = document.getElementById("card"), cardBody = document.getElementById("cardBody"), scrim = document.getElementById("scrim");
@@ -719,7 +658,7 @@ let lastEl = null, lastNode = null;
 function circleRect(el){ const c = el && el.querySelector(".halo"); return c ? c.getBoundingClientRect() : {left:innerWidth / 2, top:innerHeight / 2, width:10, height:10}; }
 function openCard(d, el){
   lastEl = el; lastNode = d;
-  cardBody.innerHTML = d.card(); if (!cardBody.querySelector("img,svg,.geomap")) cardBody.insertAdjacentHTML("beforeend", sketchFor(d)); stage.hidden = false; if (d.after) d.after(cardBody); scrim.classList.add("on"); card.scrollTop = 0;
+  cardBody.innerHTML = d.card(); stage.hidden = false; if (d.after) d.after(cardBody); scrim.classList.add("on"); card.scrollTop = 0;
   const cr = circleRect(el), fr = card.getBoundingClientRect();
   const dx = (cr.left + cr.width / 2) - (fr.left + fr.width / 2), dy = (cr.top + cr.height / 2) - (fr.top + fr.height / 2), s = Math.max(.02, cr.width / fr.width);
   if (!RM) {
@@ -764,18 +703,4 @@ gN.selectAll("g.node .body").interrupt().attr("transform", "scale(1)");
 fit(ROOT, 0);
 // gentle intro: branches pop out once
 if (!RM) gN.selectAll("g.node.d1 .body").attr("transform", "scale(.3)").transition().delay((d, i) => 150 + i * 90).duration(600).ease(d3.easeBackOut.overshoot(1.8)).attr("transform", "scale(1)");
-</script>
-<script>
-(function(){
-const W=[["molecular dynamics",3],["cellulose",3],["spidroins",2.6],["silk",2.2],["ions",2.4],["polyelectrolytes",2.4],["deep eutectic solvents",2.2],["biomineralization",2.2],["hydroxyapatite",1.8],["force fields",2],["nanocomposites",2],["self-assembly",1.8],["surfactants",1.8],["ferrofluids",1.8],["calcium",1.6],["polyamino acids",1.8],["enhanced sampling",1.7],["free energy",1.6],["metadynamics",1.4],["umbrella sampling",1.3],["replica exchange",1.3],["coarse-graining",1.5],["Martini",1.3],["GROMACS",1.4],["HPC",1.3],["Python",1.4],["soft matter",2],["biopolymers",1.8],["hydration",1.5],["condensates",1.5],["phase transitions",1.6],["glass transition",1.3],["polymer brushes",1.4],["lignin",1.3],["hydrophobins",1.3],["NBFIX",1.1],["ECC",1.1],["AFM",1.2],["bacterial cellulose",1.5],["sustainability",1.6],["biomaterials",1.9],["grant management",1.5],["lab building",1.4],["supervision",1.4],["mentoring",1.3],["teaching",1.4],["science outreach",1.5],["market intelligence",1.5],["CECAM",1.2],["Aalto",1.4],["St Petersburg",1.3],["simulation meets experiment",1.6],["medical biophysics",1.3],["PLA",1.1],["choline chloride",1.1],["Na⁺ K⁺",1.1],["solvation",1.4],["proteins",1.6],["dielectric properties",1.1],["game design",1.2]];
-const F=["italic 600 16px 'Playfair Display',serif","600 19px Caveat,cursive","400 17px 'Bebas Neue',sans-serif","italic 400 16px Lora,serif","500 14px Orbitron,sans-serif","700 16px 'Space Grotesk',sans-serif","400 14px 'JetBrains Mono',monospace","500 16px Inter,sans-serif"];
-const box=document.getElementById("bgw");let s=7;const R=()=>(s=(s*16807)%2147483647)/2147483647;
-function lay(){box.innerHTML="";s=7;const w=innerWidth,h=innerHeight,k=Math.max(.6,Math.min(1.25,Math.sqrt(w*h)/1000)),hd=document.querySelector('header .who')||document.querySelector('header>div'),hb=hd?hd.getBoundingClientRect():{right:0,bottom:0},placed=[[0,0,hb.right+10,hb.bottom+10]];
-  for(const [txt,wt] of W){const el=document.createElement("span");el.textContent=txt;const fi=Math.floor(R()*F.length);el.style.font=F[fi];el.style.fontSize=(fi==1?1.15:1)*(11+wt*wt*4.2)*k+"px";
-    const rot=R()<.16?(R()<.5?-90:90):Math.round((R()-.5)*14);el.style.rotate=rot+"deg";el.style.animationDelay=(-R()*22)+"s";box.appendChild(el);
-    const bw=el.offsetWidth,bh=el.offsetHeight,v=Math.abs(rot)>45,ew=v?bh:bw,eh=v?bw:bh;let ok=false;
-    for(let i=0;i<80&&!ok;i++){const x=R()*(w-ew),y=R()*(h-eh);if(placed.every(p=>x+ew<p[0]-8||x>p[0]+p[2]+8||y+eh<p[1]-5||y>p[1]+p[3]+5)){placed.push([x,y,ew,eh]);el.style.left=(x+(ew-bw)/2)+"px";el.style.top=(y+(eh-bh)/2)+"px";ok=true}}
-    if(!ok)el.remove();}}
-let tm;addEventListener("resize",()=>{clearTimeout(tm);tm=setTimeout(lay,200)});lay();if(document.fonts)document.fonts.ready.then(lay);
-})();
 </script>
