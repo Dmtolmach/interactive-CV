@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Interactive CV of Dmitry Tolmachev, Research Fellow at Aalto University: molecular simulation of soft and biological materials.">
 <title>Dmitry Tolmachev</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@1,600&family=Caveat:wght@600&family=Bebas+Neue&family=Lora:ital@0;1&family=Orbitron:wght@500&display=swap">
 <style>
 /* Layout: one full-screen "molecule" — circles are atoms, links are bonds. Root atom at centre, six branch atoms around it.
    Clicking an atom grows it and releases its children; clicking a leaf grows a card out of the circle. Pan and zoom freely. */
@@ -38,7 +38,13 @@ h1{font:700 clamp(22px,3.6vw,34px)/1.05 var(--display);margin:6px 0 4px;letter-s
 .links{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
 .links a{font:500 12px var(--mono);color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px}
 .links a:hover{border-color:var(--accent);color:var(--accent)}
-svg#map{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg#map{position:relative;z-index:1;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#bgw{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;user-select:none}
+#bgw span{position:absolute;white-space:nowrap;color:var(--muted);opacity:.1;line-height:1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #bgw span{opacity:.13}}
+:root[data-theme="dark"] #bgw span{opacity:.13}
+@media (prefers-reduced-motion:no-preference){#bgw span{animation:bgf 22s ease-in-out infinite alternate}}
+@keyframes bgf{to{translate:0 -10px}}
 svg#map:active{cursor:grabbing}
 .link{stroke:var(--line);stroke-width:2;stroke-linecap:round}
 .node{cursor:pointer}
@@ -144,11 +150,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
   </nav>
 </header>
 
+<div id="bgw" aria-hidden="true"></div>
 <svg id="map" role="img" aria-label="Diagram of connected circles: Dmitry's CV"></svg>
 
 <div class="cap" id="cap" aria-live="polite"></div>
 <div class="tools">
-  <div class="legend"><i></i>dashed = draft, to confirm<br>paper circle size = citations</div>
   <button class="tb" id="resetBtn" type="button">Reset view</button>
 </div>
 
@@ -418,11 +424,11 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
   cap:"From general abilities to hard skills, each tied to papers where it shows.",
   children:[
     { id:"s-gen", label:"General", col:"--b-skl", kind:"group", glyph:"6", cap:"The habits behind the papers.", children:[
-      S("s-learn","Fast learner","I moved from medicine to polymer physics, then to cellulose, proteins and ferrofluids, each time publishing in the new field.",[28,27,8,29],"",true),
-      S("s-prob","Problem solver","When simulations of polyelectrolytes disagreed with experiment, I traced the cause to ions over-binding in the force fields and showed how to fix it.",[16,10],"",true),
-      S("s-bridge","Bridges experiment and simulation","I work hand in hand with experimental groups so that simulations explain what they measure.",[15,9,3,7,12],"",true),
+      S("s-learn","Fast learner","As a scientist I am a fast learner. I moved from medical physics to polymer physics, then to cellulose, proteins and ferrofluids, each time publishing in the new field.",[28,27,8,29]),
+      S("s-prob","Problem solver","Every research question is a problem to solve: how to model the target system, and how to connect the model with experiment. Organizational work also needs problems solved on the fly. Once I had to break down and rebuild an entire wall in the lab within one day.",[16,10]),
+      S("s-bridge","Bridges experiment and simulation","Almost all of my work is done in collaboration with experimental groups. Bridging simulation and experiment is often not a trivial task. The specialists speak different languages, and the methods themselves are different in nature. I connect the two so that simulations explain what is measured.",[15,9,3,7,12]),
       S("s-org","Organizer","I build the conditions for research: a new lab, grant reports, conferences and workshops.",[], `<div class="chips"><button class="chip" type="button" data-goto="m-lab">Built a new lab</button><button class="chip" type="button" data-goto="m-events">Event organization</button></div>`),
-      S("s-mentor","Mentor","I advise six doctoral students and have guided twelve Master's and Bachelor's theses.",[4,6], `<div class="chips"><button class="chip" type="button" data-goto="m-team">Teams & supervision</button></div>`,true),
+      S("s-mentor","Mentor","I advise six doctoral students and have guided twelve Master's and Bachelor's theses.",[4,6], `<div class="chips"><button class="chip" type="button" data-goto="m-team">Teams & supervision</button></div>`),
       S("s-comm","Science communicator","I explain science to non-specialists: Night of Museums tours, the Hermitage science exhibition, and multidisciplinary talks that introduce non-specialists to computational chemistry. I also design educational games that teach physics through play.",[],`<div class="chips"><button class="chip" type="button" data-goto="b-tea">Lectures & teaching</button><button class="chip" type="button" data-goto="g-sug">Educational game: Shut Up and Get Structured</button><button class="chip" type="button" data-goto="h-game">All my games</button></div>`)
     ]},
     { id:"s-comp", label:"Computational", col:"--b-skl", kind:"group", glyph:"MD", cap:"From quantum chemistry to coarse-grained models: the full ladder of simulation scales.", children:[
@@ -437,10 +443,10 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
         S("s-us","Umbrella sampling","Free-energy profiles along a chosen coordinate, for example how Na⁺ and Cl⁻ ions approach cellulose Iβ crystal surfaces.",[6]),
         S("s-mtd","Metadynamics","History-dependent bias to explore conformational landscapes: CaCl₂ with polyamino-acid brushes, and barnacle protein simulations (unpublished, in progress).",[13]),
         S("s-remd","Replica exchange MD","Parallel tempering to sample the conformations of anionic polyamino acids binding calcium ions (CaCl₂).",[14]),
-        S("s-fep","Alchemical free energy (FEP / TI)","Free-energy perturbation and thermodynamic integration for solvation and binding free energies.",[],"",true)
+        S("s-fep","Alchemical free energy (FEP / TI)","Free-energy perturbation and thermodynamic integration for solvation and binding free energies. To be published soon.",[])
       ]},
       S("s-hpc","Linux & HPC","I work daily in Linux and run large simulations on high-performance computing clusters and supercomputers: job scripts, batch queues and parallel runs.",[]),
-      S("s-py","Python and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">MENTE SPB</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
+      S("s-py","Python and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">Marketing consulting</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
     ]},
     { id:"s-exp", label:"Experimental & data analysis", col:"--b-skl", kind:"group", glyph:"LAB", cap:"Hands-on lab methods and analysis of experimental data.", children:[
       S("s-saxs","SAXS","Small-angle X-ray scattering data analysis for ferrofluid structure.",[29]),
@@ -495,15 +501,14 @@ const hobbies = { id:"b-hob", label:"Hobbies", col:"--b-hob", icon:IC.hob, kind:
   ]};
 
 const B = (id, label, glyph, text) => ({ id, label, col:"--b-biz", kind:"leaf", r:17, glyph,
-  card:() => `<div class="meta"><span class="tag acc">MENTE SPB</span><span>2017–2022</span></div><h2>${esc(label)}</h2><p class="lead">${text}</p>` });
-const mente = { id:"b-biz", label:"MENTE SPB", col:"--b-biz", photo:{src:"ph/lamente-logo.png"}, kind:"branch",
+  card:() => `<div class="meta"><span class="tag acc">Marketing consulting</span><span>2017–2022</span></div><h2>${esc(label)}</h2><p class="lead">${text}</p>` });
+const mente = { id:"b-biz", label:"Marketing consulting", col:"--b-biz", photo:{src:"ph/lamente-logo.png"}, kind:"branch",
   cap:"I was CEO and Market Intelligence Lead of a market-intelligence consultancy for small companies in St Petersburg, February 2017 to August 2022, part time alongside research.",
-  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>MENTE SPB, CEO</h2><img src="ph/lamente-logo.png" alt="La Mente logo: marketing as an art" style="width:140px;border:0;margin:0 0 10px"><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
+  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>Marketing consulting, CEO</h2><img src="ph/lamente-logo.png" alt="La Mente logo: marketing as an art" style="width:140px;border:0;margin:0 0 10px"><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
   children:[
     B("z-mkt","Market analysis & forecasting","↗","Market sizing, trend analysis and forecasts for client decisions."),
     B("z-ci","Competitive intelligence","◎","Structured monitoring of competitors and their moves."),
-    B("z-rep","Decision reports for owners","▤","Clear reports and briefings for owners and managers of small companies, to support their decisions."),
-    B("z-data","Python & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable reports."),
+    B("z-data","Python & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable analyses."),
     B("z-team","Led a cross-functional team","☰","I led analysts and specialists from different backgrounds as CEO.")
   ]};
 
@@ -525,12 +530,12 @@ const education = { id:"b-edu", label:"Education", col:"--b-edu", icon:IC.edu, k
 const ROOT = { id:"root", label:"Dmitry Tolmachev", col:"--accent", kind:"root", r:58,
   cap:"Click any circle to open it. Drag to move, scroll or pinch to zoom.",
   card:() => `<div class="meta"><span class="tag acc">About</span><span>Espoo, Finland</span></div><h2>Dmitry Tolmachev</h2>
-    <p class="lead">I am a physicist trained in medical biophysics. I use molecular simulation to understand soft and biological materials. I also build labs, run grants, and once ran a consultancy.</p>
+    <p class="lead">I am a physicist trained in medical biophysics. I use molecular simulation to understand soft and biological materials.</p>
     <div class="stats"><div><b>${real.length}</b><span>publications</span></div><div><b>14</b><span>h-index</span></div><div><b>${eur(totalEur)}</b><span>grants managed</span></div><div><b>6</b><span>PhD students</span></div></div>
     <h4>Career</h4><ul class="tl">
     <li><b>2022 – 2027</b>Research Fellow, Aalto University, Soft Materials Modelling group (Prof. Maria Sammalkorpi)</li>
     <li><b>2017 – 2022</b>Researcher, then Senior Researcher, IMC RAS, Laboratory of polymer biomaterials (Prof. Mikko Karttunen)</li>
-    <li><b>2017 – 2022</b>CEO, MENTE SPB (part time)</li>
+    <li><b>2017 – 2022</b>CEO, marketing consulting company (part time)</li>
     <li><b>2010 – 2017</b>Junior Researcher, then Researcher, IMC RAS, theory and modelling of polymers (Prof. Sergey Lyulin)</li></ul>
     <h4>Degrees</h4><ul><li>PhD 2015, physics of macromolecular compounds, IMC RAS</li><li>MSc 2010 and BSc 2008, medical biophysics and biomaterials, Peter the Great St Petersburg Polytechnic University</li></ul>
     <p class="muted">ORCID 0000-0002-9699-100X · Scopus 36978290300</p>`,
@@ -704,4 +709,18 @@ gN.selectAll("g.node .body").interrupt().attr("transform", "scale(1)");
 fit(ROOT, 0);
 // gentle intro: branches pop out once
 if (!RM) gN.selectAll("g.node.d1 .body").attr("transform", "scale(.3)").transition().delay((d, i) => 150 + i * 90).duration(600).ease(d3.easeBackOut.overshoot(1.8)).attr("transform", "scale(1)");
+</script>
+<script>
+(function(){
+const W=[["molecular dynamics",3],["cellulose",3],["spidroins",2.6],["silk",2.2],["ions",2.4],["polyelectrolytes",2.4],["deep eutectic solvents",2.2],["biomineralization",2.2],["hydroxyapatite",1.8],["force fields",2],["nanocomposites",2],["self-assembly",1.8],["surfactants",1.8],["ferrofluids",1.8],["calcium",1.6],["polyamino acids",1.8],["enhanced sampling",1.7],["free energy",1.6],["metadynamics",1.4],["umbrella sampling",1.3],["replica exchange",1.3],["coarse-graining",1.5],["Martini",1.3],["GROMACS",1.4],["HPC",1.3],["Python",1.4],["soft matter",2],["biopolymers",1.8],["hydration",1.5],["condensates",1.5],["phase transitions",1.6],["glass transition",1.3],["polymer brushes",1.4],["lignin",1.3],["hydrophobins",1.3],["NBFIX",1.1],["ECC",1.1],["AFM",1.2],["bacterial cellulose",1.5],["sustainability",1.6],["biomaterials",1.9],["grant management",1.5],["lab building",1.4],["supervision",1.4],["mentoring",1.3],["teaching",1.4],["science outreach",1.5],["market intelligence",1.5],["CECAM",1.2],["Aalto",1.4],["St Petersburg",1.3],["simulation meets experiment",1.6],["medical biophysics",1.3],["PLA",1.1],["choline chloride",1.1],["Na⁺ K⁺",1.1],["solvation",1.4],["proteins",1.6],["dielectric properties",1.1],["game design",1.2]];
+const F=["italic 600 16px 'Playfair Display',serif","600 19px Caveat,cursive","400 17px 'Bebas Neue',sans-serif","italic 400 16px Lora,serif","500 14px Orbitron,sans-serif","700 16px 'Space Grotesk',sans-serif","400 14px 'JetBrains Mono',monospace","500 16px Inter,sans-serif"];
+const box=document.getElementById("bgw");let s=7;const R=()=>(s=(s*16807)%2147483647)/2147483647;
+function lay(){box.innerHTML="";s=7;const w=innerWidth,h=innerHeight,k=Math.max(.6,Math.min(1.25,Math.sqrt(w*h)/1000)),hd=document.querySelector('header .who')||document.querySelector('header>div'),hb=hd?hd.getBoundingClientRect():{right:0,bottom:0},placed=[[0,0,hb.right+10,hb.bottom+10]];
+  for(const [txt,wt] of W){const el=document.createElement("span");el.textContent=txt;const fi=Math.floor(R()*F.length);el.style.font=F[fi];el.style.fontSize=(fi==1?1.15:1)*(11+wt*wt*4.2)*k+"px";
+    const rot=R()<.16?(R()<.5?-90:90):Math.round((R()-.5)*14);el.style.rotate=rot+"deg";el.style.animationDelay=(-R()*22)+"s";box.appendChild(el);
+    const bw=el.offsetWidth,bh=el.offsetHeight,v=Math.abs(rot)>45,ew=v?bh:bw,eh=v?bw:bh;let ok=false;
+    for(let i=0;i<80&&!ok;i++){const x=R()*(w-ew),y=R()*(h-eh);if(placed.every(p=>x+ew<p[0]-8||x>p[0]+p[2]+8||y+eh<p[1]-5||y>p[1]+p[3]+5)){placed.push([x,y,ew,eh]);el.style.left=(x+(ew-bw)/2)+"px";el.style.top=(y+(eh-bh)/2)+"px";ok=true}}
+    if(!ok)el.remove();}}
+let tm;addEventListener("resize",()=>{clearTimeout(tm);tm=setTimeout(lay,200)});lay();if(document.fonts)document.fonts.ready.then(lay);
+})();
 </script>
