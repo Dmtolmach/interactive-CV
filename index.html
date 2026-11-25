@@ -496,9 +496,9 @@ const hobbies = { id:"b-hob", label:"Hobbies", col:"--b-hob", icon:IC.hob, kind:
 
 const B = (id, label, glyph, text) => ({ id, label, col:"--b-biz", kind:"leaf", r:17, glyph,
   card:() => `<div class="meta"><span class="tag acc">MENTE SPB</span><span>2017–2022</span></div><h2>${esc(label)}</h2><p class="lead">${text}</p>` });
-const mente = { id:"b-biz", label:"MENTE SPB", col:"--b-biz", icon:IC.biz, kind:"branch",
+const mente = { id:"b-biz", label:"MENTE SPB", col:"--b-biz", photo:{src:"ph/lamente-logo.png"}, kind:"branch",
   cap:"I was CEO and Market Intelligence Lead of a market-intelligence consultancy for small companies in St Petersburg, February 2017 to August 2022, part time alongside research.",
-  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>MENTE SPB, CEO</h2><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
+  card:() => `<div class="meta"><span class="tag acc">Business</span><span>Feb 2017 – Aug 2022 · St Petersburg, hybrid</span></div><h2>MENTE SPB, CEO</h2><img src="ph/lamente-logo.png" alt="La Mente logo: marketing as an art" style="width:140px;border:0;margin:0 0 10px"><p class="lead">I ran a marketing-intelligence consultancy part time, next to my research career: market analysis, forecasts and competitive intelligence for small companies.</p><p class="muted">${guessTag("Team size and a highlight project: please add")}</p>`,
   children:[
     B("z-mkt","Market analysis & forecasting","↗","Market sizing, trend analysis and forecasts for client decisions."),
     B("z-ci","Competitive intelligence","◎","Structured monitoring of competitors and their moves."),
