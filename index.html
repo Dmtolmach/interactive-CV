@@ -364,7 +364,7 @@ const events = [
 const phd = ["Zhenan Kou (2022–2025, completed)","Kourosh Hasheminejad (2024–2026, completed)","Adam Harmat (2023–2026)","Efstathia Mantzari (2024–2027)","Antti Mäkynen (2025–2028)","Yan Zheng (2025–2028)"];
 
 const management = { id:"b-man", label:"Management & leadership", col:"--b-man", icon:IC.man, kind:"branch",
-  cap:`I built a lab, managed about ${eur(totalEur)} in grants, advise 6 PhD students and have organized more than ten scientific meetings.`,
+  cap:`I built a lab, managed about ${eur(totalEur)} in grants, advise 6 PhD students and have organized more than ten scientific events.`,
   children:[
     { id:"m-lab", label:"Built a new lab", col:"--b-man", kind:"leaf", glyph:"LAB", r:24, photo:{src:"ph/imc-logo.png"},
       card:() => `<div class="meta"><span class="tag acc">Management</span><span>2017–2021 · IMC RAS, St Petersburg</span></div><h2>Built a laboratory from an empty room</h2>
@@ -393,8 +393,8 @@ const management = { id:"b-man", label:"Management & leadership", col:"--b-man",
         <p class="muted">Advisory groups for PhD students (Tiia Siivola, Efstathia Mantzari, 2025). State examination committee, SPbU (2021–2022). </p>
         ${chips([4,6,0])}` },
     { id:"m-events", label:"Event organization", col:"--b-man", kind:"leaf", r:22, glyph:"●",
-      cap:"I have organized or chaired more than ten scientific meetings in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.",
-      card:() => `<div class="meta"><span class="tag acc">Management</span><span>${events.length} events</span></div><h2>Event organization</h2><p class="lead">I have organized or chaired more than ten scientific meetings in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.</p>
+      cap:"I have organized or chaired more than ten scientific events in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.",
+      card:() => `<div class="meta"><span class="tag acc">Management</span><span>${events.length} events</span></div><h2>Event organization</h2><p class="lead">I have organized or chaired more than ten scientific events in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.</p>
         <ul class="tl">${events.map(e => `<li><b>${esc(e.y)}</b>${esc(e.t)}. <span class="muted">${esc(e.w)}. Role: ${esc(e.r)}${e.x ? `, ${esc(e.x)}` : ""}.</span></li>`).join("")}</ul>` },
     geoNode,
     { id:"m-service", label:"Reviewing & service", col:"--b-man", kind:"leaf", glyph:"✓", r:15,
