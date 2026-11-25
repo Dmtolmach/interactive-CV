@@ -135,6 +135,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .geo svg{width:100%;height:auto;display:block;background:var(--drop);border-radius:10px}
 .geo text{font:500 9px var(--mono);fill:var(--muted)}
 @media (prefers-reduced-motion:reduce){.scrim,.cap{transition:none}}
+.cap[hidden]{display:none}
 </style>
 
 <header>
@@ -147,6 +148,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
     <a href="https://scholar.google.com/citations?user=OQtj-R4AAAAJ" target="_blank" rel="noopener">Scholar</a>
     <a href="https://orcid.org/0000-0002-9699-100X" target="_blank" rel="noopener">ORCID</a>
     <a href="https://www.linkedin.com/in/dmitry-tolmachev-158806254/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="mailto:tolmach.dm@gmail.com" title="tolmach.dm@gmail.com">Email</a>
   </nav>
 </header>
 
@@ -272,7 +274,8 @@ function mountMap(host){
   const W = 560, H = 330, info = host.querySelector(".mapinfo"), tip = box.querySelector(".maptip");
   const svg = d3.select(box).insert("svg", ":first-child").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img").attr("aria-label", "Interactive world map of my collaborations");
   const feats = topojson.feature(WORLD, WORLD.objects.countries).features.filter(f => f.id !== "010");
-  const proj = d3.geoNaturalEarth1().fitExtent([[4, 4], [W - 4, H - 4]], {type:"MultiPoint", coordinates:[[-112, -34], [95, -34], [-112, 70], [95, 70]]});
+  const aea = d3.geoAzimuthalEqualAreaRaw, fish = (l, p) => { const [x, y] = aea(l, p), r = Math.hypot(x, y); if (!r) return [0, 0]; const s = 2 * Math.pow(r / 2, .62) / r; return [x * s, y * s]; };
+  const proj = d3.geoProjection(fish).rotate([-17, -52]).clipAngle(130).fitExtent([[6, 6], [W - 6, H - 6]], {type:"MultiPoint", coordinates:[[-99, 28], [-48, -26], [86, 54], [-82, 45], [33, 70], [-10, 36]]});
   const path = d3.geoPath(proj), g = svg.append("g");
   const tint = c => RU_ERA.has(c) ? "var(--o)" : "var(--c)";
   g.selectAll("path.cty").data(feats).join("path").attr("class", d => "cty" + (NUM_ISO[d.id] ? " on" : "")).attr("d", path)
@@ -325,21 +328,13 @@ function geoSvg(){
   return `<div class="geo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Schematic map of collaborating cities">${g}</svg></div>
   <p class="muted">Schematic, not to scale of coastlines. Red arcs: St Petersburg years (2010–2022). Teal arcs: Aalto years (2022–now). Dot size grows with the number of joint papers.</p>`;
 }
-const geoNode = { id:"m-geo", label:"Collaboration geography", col:"--b-man", kind:"group", glyph:String(Object.keys(ctry).length + 1),
+const geoNode = { id:"m-geo", label:"Collaboration geography", col:"--b-man", kind:"leaf", r:24, glyph:String(Object.keys(ctry).length + 1),
   cap:`My co-authors are in ${Object.keys(ctry).length} countries across ${PUB.institutions.length} institutions, plus a UK partner through the 2026 CECAM workshop.`,
   card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Collaboration geography</h2>
     <div class="stats"><div><b>${Object.keys(ctry).length + 1}</b><span>countries</span></div><div><b>${PUB.institutions.length}</b><span>institutions</span></div><div><b>3</b><span>continents</span></div></div>
     <div class="geomap"><div class="maptip" hidden></div><div class="mapbtns"><button type="button" data-z="+" aria-label="Zoom in">+</button><button type="button" data-z="-" aria-label="Zoom out">−</button><button type="button" data-z="fi">Nordics</button><button type="button" data-z="0">World</button></div></div>
-    <p class="muted">Drag to pan, use the buttons to zoom. Hover a city to see the institutions, click a city or a country to list them with the joint papers. Red: my St Petersburg years (2010–2022). Teal: my Aalto years (2022–now). Dot size grows with the number of joint papers.</p>
-    <div class="mapinfo"><p class="muted">Click a city or a highlighted country.</p></div>`,
-  after: mountMap,
-  children: Object.entries(ctry).concat([["GB", []]]).sort((a, b) => b[1].length - a[1].length).map(([c, ns]) => ({
-    id:"c-"+c, label:CN[c] || c, col:"--b-man", kind:"leaf", r: 11 + Math.sqrt(Math.max(ns.length, 1)) * 3.2, glyph:c,
-    card:() => { const ins = PUB.institutions.filter(i => i.country === c).concat((PUB.non_paper_collaborations || []).filter(i => i.country === c));
-      return `<div class="meta"><span class="tag acc">Collaboration geography</span><span>${ns.length} joint papers</span></div><h2>${esc(CN[c] || c)}</h2>
-      <ul>${ins.map(i => `<li><b>${esc(i.name)}</b>, ${esc(i.city)}${i.via ? ` (${esc(i.via)})` : ` · ${i.papers} paper${i.papers > 1 ? "s" : ""}`}</li>`).join("")}</ul>
-      ${ns.length ? `<h4>Joint papers</h4>${chips(ns)}` : ""}`; }
-  }))
+    <div class="mapinfo"></div>`,
+  after: mountMap
 };
 
 const grants = [
@@ -382,14 +377,11 @@ const management = { id:"b-man", label:"Management & leadership", col:"--b-man",
       <div class="stats"><div><b>~10</b><span>people in the group</span></div><div><b>~7</b><span>students I instruct</span></div><div><b>4+</b><span>projects I am part of, over half of the group's</span></div></div>
       <p class="muted">Research Fellow 2022–2027, career stage R3: independent researcher capable of academic leadership. Member of the department's occupational safety group since 2022.</p>
       ${photoFig(PHOTOS["grp"])}<div class="chips"><button class="chip" type="button" data-goto="m-team">Students and theses</button></div>` },
-    { id:"m-grants", label:"Grants & budgets", col:"--b-man", kind:"group", glyph:"€3M",
+    { id:"m-grants", label:"Grants & budgets", col:"--b-man", kind:"leaf", r:24, glyph:"€3M",
       cap:`${grants.length} funded projects, about ${eur(totalEur)} in total. Three as Principal Investigator, three as Leading Investigator and Grant Manager.`,
       card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Grants and budgets</h2>
         <div class="stats"><div><b>${eur(totalEur)}</b><span>total managed</span></div><div><b>3</b><span>grants as PI</span></div><div><b>3</b><span>as Lead Investigator / Grant Manager</span></div></div>
-        ${grants.map(g => `<div><b>${eur(g.eur)}</b> <span class="muted">${esc(g.y)} · ${esc(g.role)}</span><div class="bar"><i style="width:${Math.max(2, g.eur / 20)}%"></i></div></div>`).join("")}`,
-      children: grants.map((g, i) => ({ id:"g"+i, label:g.s, col:"--b-man", kind:"leaf", r: 11 + Math.sqrt(g.eur) * .42, glyph:"€",
-        card:() => `<div class="meta"><span class="tag acc">Grant</span><span>${esc(g.y)}</span><span>${eur(g.eur)}</span></div><h2>${esc(g.t)}</h2>
-        <p><b>${esc(g.role)}</b>${g.pi ? `. ${esc(g.pi)}` : ""}. ${esc(g.f)}.</p><p>${esc(g.d)}</p>${g.papers.length ? `<h4>Related papers</h4>${chips(g.papers)}` : ""}` })) },
+        ${grants.map(g => `<h4>${esc(g.y)} · ${esc(g.role)}</h4><p><b>${esc(g.t)}</b></p><p class="muted">${g.pi ? `${esc(g.pi)}. ` : ""}${esc(g.f)}. ${esc(g.d)}</p>${g.papers.length ? chips(g.papers) : ""}`).join("")}` },
     { id:"m-team", label:"Teams & supervision", col:"--b-man", kind:"leaf", glyph:"16", r:22,
       card:() => `<div class="meta"><span class="tag acc">Management</span></div><h2>Teams and supervision</h2>
         <div class="stats"><div><b>6</b><span>PhD theses advised</span></div><div><b>6</b><span>Master's theses</span></div><div><b>4</b><span>Bachelor's theses</span></div></div>
@@ -468,9 +460,9 @@ const lectures = { id:"b-tea", label:"Lectures & teaching", col:"--b-tea", icon:
   card:() => `<div class="meta"><span class="tag acc">Teaching</span></div><h2>Lectures and teaching</h2><ul class="tl">${LECT.items.map(i => `<li><b>${esc(i.year)} · ${esc(i.type)}</b>${esc(i.title)}. <span class="muted">${esc(i.where)}${i.role ? ". " + esc(i.role) : ""}</span></li>`).join("")}</ul>
     <h4>Pedagogical training</h4><ul>${LECT.pedagogical_training.map(t => `<li>${esc(t)}</li>`).join("")}</ul>`,
   children: LECT.items.map((it, i) => ({ id:"t"+i, label:it.year.split("–")[0] + " · " + it.type, col:"--b-tea", kind:"leaf",
-    r: /Night of Museums/.test(it.title) ? 20 : /outreach/i.test(it.type) ? 13 : 16, glyph: it.length ? it.length.replace(" ", "") : "", guess: !!it.note,
-    photo: /Night of Museums/.test(it.title) ? {src:"ph/night-museums-2019.jpg"} : undefined,
-    card:() => `<div class="meta"><span class="tag acc">${esc(it.type)}</span><span>${esc(it.year)}</span>${it.length ? `<span>${esc(it.length)}</span>` : ""}${it.note ? guessTag(it.note) : ""}</div><h2>${esc(it.title)}</h2><p>${esc(it.where)}.</p>${it.role ? `<p><b>Role:</b> ${esc(it.role)}.</p>` : ""}${/Night of Museums/.test(it.title) ? `<div class="gal lab3"><figure><img src="ph/night-museums-2019.jpg" alt="Me guiding a group of visitors through the lab" loading="lazy"><figcaption>2019: guiding visitors through the lab</figcaption></figure><figure><img src="ph/night-museums-2017.jpg" alt="A young visitor meets a scrap-metal robot sculpture" loading="lazy"><figcaption>2017: a young visitor meets the art installation</figcaption></figure></div>` : ""}` }))
+    r: /Night of Museums|Quantologoi|atomistic molecular dynamics/.test(it.title) ? 20 : /outreach/i.test(it.type) ? 13 : 16, glyph: it.length ? it.length.replace(" ", "") : "", guess: !!it.note,
+    photo: /Night of Museums/.test(it.title) ? {src:"ph/night-museums-2019.jpg"} : /Quantologoi/.test(it.title) ? {src:"ph/quantologoi.jpg"} : /atomistic molecular dynamics/.test(it.title) ? {src:"ph/turku-lecture.jpg"} : undefined,
+    card:() => `<div class="meta"><span class="tag acc">${esc(it.type)}</span><span>${esc(it.year)}</span>${it.length ? `<span>${esc(it.length)}</span>` : ""}${it.note ? guessTag(it.note) : ""}</div><h2>${esc(it.title)}</h2><p>${esc(it.where)}.</p>${it.role ? `<p><b>Role:</b> ${esc(it.role)}.</p>` : ""}${/Night of Museums/.test(it.title) ? `<div class="gal lab3"><figure><img src="ph/night-museums-2019.jpg" alt="Me guiding a group of visitors through the lab" loading="lazy"><figcaption>2019: guiding visitors through the lab</figcaption></figure><figure><img src="ph/night-museums-2017.jpg" alt="A young visitor meets a scrap-metal robot sculpture" loading="lazy"><figcaption>2017: a young visitor meets the art installation</figcaption></figure></div>` : ""}${/Quantologoi/.test(it.title) ? `<figure class="ph"><img src="ph/quantologoi.jpg" alt="Retro-futuristic exhibits of the Quantologoi exhibition in the Hermitage General Staff Building" loading="lazy"><figcaption>The Quantologoi exhibition, Hermitage General Staff Building, 2019. Still from a TV St Petersburg report.</figcaption></figure>` : ""}${/atomistic molecular dynamics/.test(it.title) ? `<figure class="ph"><img src="ph/turku-lecture.jpg" alt="Me giving the lecture in Turku" loading="lazy" style="max-width:240px"><figcaption>Giving the lecture at the University of Turku, 2026</figcaption></figure>` : ""}` }))
   .concat([{ id:"t-sup", label:"Thesis supervision", col:"--b-tea", kind:"leaf", glyph:"16", r:16,
     card:() => `<div class="meta"><span class="tag acc">Teaching</span></div><h2>Thesis supervision</h2><div class="stats"><div><b>${LECT.supervision.phd}</b><span>PhD</span></div><div><b>${LECT.supervision.msc}</b><span>Master's</span></div><div><b>${LECT.supervision.bsc}</b><span>Bachelor's</span></div></div><div class="chips"><button class="chip" type="button" data-goto="m-team">Names and years</button></div>` }])
 };
@@ -654,6 +646,7 @@ function fit(n, dur = 800){
 const cap = document.getElementById("cap");
 function trail(n){ const a = []; for (let p = n; p; p = p.parent) a.unshift(p.label); return a.slice(1).join(" › ") || "Start here"; }
 function caption(n){
+  cap.hidden = !n.parent; if (cap.hidden) return;
   cap.innerHTML = `<div class="k">${esc(trail(n))}</div><h3>${esc(n.label)}</h3><p>${esc(n.cap || "")}</p>${n.card ? `<button class="tb" type="button" id="capMore">Open details</button>` : ""}`;
   const b = document.getElementById("capMore"); if (b) b.onclick = () => openCard(n, gN.selectAll("g.node").filter(d => d === n).node());
 }
