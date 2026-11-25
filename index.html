@@ -359,7 +359,7 @@ const events = [
   {id:"hcp", n:"Modelling of Heterocyclic Polymers", y:"2016", t:"All-Russian conference with a scientific school \"Computer modelling of heterocyclic polymers\"", w:"St Petersburg", r:"Practical organization"}
 ];
 
-const phd = ["Zhenan Kou (2022–2025, completed)","Kourosh Hasheminejad (2024–2026, completed)","Adam Harmat (2023–2026)","Efstathia Mantzari (2024–2027)","Antti Mäkynen (2025–2028)","Yen Zheng (2025–2028)"];
+const phd = ["Zhenan Kou (2022–2025, completed)","Kourosh Hasheminejad (2024–2026, completed)","Adam Harmat (2023–2026)","Efstathia Mantzari (2024–2027)","Antti Mäkynen (2025–2028)","Yan Zheng (2025–2028)"];
 
 const management = { id:"b-man", label:"Management & leadership", col:"--b-man", icon:IC.man, kind:"branch",
   cap:`I built a lab, managed about ${eur(totalEur)} in grants, advise 6 PhD students and have organized more than ten scientific meetings.`,
@@ -393,10 +393,10 @@ const management = { id:"b-man", label:"Management & leadership", col:"--b-man",
         <h4>Disciplines I work across</h4><div class="chips"><span class="chip">physics</span><span class="chip">physical chemistry</span><span class="chip">polymer science</span><span class="chip">protein engineering</span><span class="chip">wood and cellulose science</span><span class="chip">chemical engineering</span><span class="chip">medicine</span></div>
         <p class="muted">Advisory groups for PhD students (Tiia Siivola, Efstathia Mantzari, 2025). State examination committee, SPbU (2021–2022). </p>
         ${chips([4,6,0])}` },
-    { id:"m-events", label:"Event organization", col:"--b-man", kind:"group", glyph:"●",
+    { id:"m-events", label:"Event organization", col:"--b-man", kind:"leaf", r:22, glyph:"●",
       cap:"I have organized or chaired more than ten scientific meetings in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.",
-      children: events.map((e, i) => ({ id:"e"+i, label:e.n, col:"--b-man", kind:"leaf", r: e.big ? 22 : 16, glyph:"●", photo: PHOTOS["ev-" + e.id],
-        card:() => `<div class="meta"><span class="tag acc">Event</span><span>${esc(e.y)}</span>${e.x ? `<span>${esc(e.x)}</span>` : ""}</div><h2>${esc(e.t)}</h2><p>${esc(e.w)}.</p><p><b>Role:</b> ${esc(e.r)}.</p>${photoFig(PHOTOS["ev-" + e.id])}` })) },
+      card:() => `<div class="meta"><span class="tag acc">Management</span><span>${events.length} events</span></div><h2>Event organization</h2><p class="lead">I have organized or chaired more than ten scientific meetings in Finland and Russia, from young-scientist conferences to a 2026 CECAM workshop.</p>
+        <ul class="tl">${events.map(e => `<li><b>${esc(e.y)}</b>${esc(e.t)}. <span class="muted">${esc(e.w)}. Role: ${esc(e.r)}${e.x ? `, ${esc(e.x)}` : ""}.</span></li>`).join("")}</ul>` },
     geoNode,
     { id:"m-service", label:"Reviewing & service", col:"--b-man", kind:"leaf", glyph:"✓", r:15,
       card:() => `<div class="meta"><span class="tag acc">Service</span></div><h2>Reviewing and service</h2>
@@ -421,7 +421,7 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
       S("s-learn","Fast learner","I moved from medicine to polymer physics, then to cellulose, proteins and ferrofluids, each time publishing in the new field.",[28,27,8,29],"",true),
       S("s-prob","Problem solver","When simulations of polyelectrolytes disagreed with experiment, I traced the cause to ions over-binding in the force fields and showed how to fix it.",[16,10],"",true),
       S("s-bridge","Bridges experiment and simulation","I work hand in hand with experimental groups so that simulations explain what they measure.",[15,9,3,7,12],"",true),
-      S("s-org","Organizer","I build the conditions for research: a new lab, grant reports, conferences and workshops.",[], `<div class="chips"><button class="chip" type="button" data-goto="m-lab">Built a new lab</button><button class="chip" type="button" data-goto="e0">CECAM workshop 2026</button></div>`,true),
+      S("s-org","Organizer","I build the conditions for research: a new lab, grant reports, conferences and workshops.",[], `<div class="chips"><button class="chip" type="button" data-goto="m-lab">Built a new lab</button><button class="chip" type="button" data-goto="m-events">Event organization</button></div>`),
       S("s-mentor","Mentor","I advise six doctoral students and have guided twelve Master's and Bachelor's theses.",[4,6], `<div class="chips"><button class="chip" type="button" data-goto="m-team">Teams & supervision</button></div>`,true),
       S("s-comm","Science communicator","I explain science to non-specialists: Night of Museums tours, the Hermitage science exhibition, and multidisciplinary talks that introduce non-specialists to computational chemistry. I also design educational games that teach physics through play.",[],`<div class="chips"><button class="chip" type="button" data-goto="b-tea">Lectures & teaching</button><button class="chip" type="button" data-goto="g-sug">Educational game: Shut Up and Get Structured</button><button class="chip" type="button" data-goto="h-game">All my games</button></div>`)
     ]},
@@ -439,7 +439,8 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
         S("s-remd","Replica exchange MD","Parallel tempering to sample the conformations of anionic polyamino acids binding calcium ions (CaCl₂).",[14]),
         S("s-fep","Alchemical free energy (FEP / TI)","Free-energy perturbation and thermodynamic integration for solvation and binding free energies.",[],"",true)
       ]},
-      S("s-py","Python, SQL and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">MENTE SPB</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
+      S("s-hpc","Linux & HPC","I work daily in Linux and run large simulations on high-performance computing clusters and supercomputers: job scripts, batch queues and parallel runs.",[]),
+      S("s-py","Python and data pipelines","I build analysis pipelines for simulations and for market data, and wrote Jupyter exercises for an Aalto course.",[], `<div class="chips"><button class="chip" type="button" data-goto="b-biz">MENTE SPB</button><button class="chip" type="button" data-goto="t3">Course exercises</button></div>`)
     ]},
     { id:"s-exp", label:"Experimental & data analysis", col:"--b-skl", kind:"group", glyph:"LAB", cap:"Hands-on lab methods and analysis of experimental data.", children:[
       S("s-saxs","SAXS","Small-angle X-ray scattering data analysis for ferrofluid structure.",[29]),
@@ -480,7 +481,7 @@ const hobbies = { id:"b-hob", label:"Hobbies", col:"--b-hob", icon:IC.hob, kind:
       card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>My photos</span></div><h2>Photography</h2><p class="lead">Wildlife and macro photography: birds, insects and animals, caught up close.</p>
       <div class="gal">${[1,2,3,4].map(i => `<img src="ph/hobby-photo-${i}.jpg" alt="Wildlife photo I took" loading="lazy">`).join("")}</div>` },
     { id:"h-cro", label:"Crocheting", col:"--b-hob", kind:"leaf", r:24, photo:{src:"ph/croch-1.jpg"},
-      card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>Made by me</span></div><h2>Crocheting</h2><p class="lead">Crocheted creatures with character: a giant eyeball monster, a frog with a long red tongue, a many-eyed beetle, a capybara and a woolly sheep.</p>
+      card:() => `<div class="meta"><span class="tag acc">Hobbies</span><span>Made by me</span></div><h2>Crocheting</h2><p class="lead">I crochet toys with character.</p>
       <div class="gal">${[1,2,3,4].map(i => `<img src="ph/croch-${i}.jpg" alt="Crocheted toy I made" loading="lazy">`).join("")}</div>` },
     { id:"h-game", label:"Educational game design", col:"--b-hob", kind:"group", glyph:"▲",
       cap:"I design educational games: one about dementia, and one that teaches phase transitions with a real 2D molecular dynamics simulation.",
@@ -502,7 +503,7 @@ const mente = { id:"b-biz", label:"MENTE SPB", col:"--b-biz", icon:IC.biz, kind:
     B("z-mkt","Market analysis & forecasting","↗","Market sizing, trend analysis and forecasts for client decisions."),
     B("z-ci","Competitive intelligence","◎","Structured monitoring of competitors and their moves."),
     B("z-rep","Decision reports for owners","▤","Clear reports and briefings for owners and managers of small companies, to support their decisions."),
-    B("z-data","Python, SQL & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable reports."),
+    B("z-data","Python & Excel pipelines","{}","I built data pipelines that turned raw market data into repeatable reports."),
     B("z-team","Led a cross-functional team","☰","I led analysts and specialists from different backgrounds as CEO.")
   ]};
 
