@@ -96,6 +96,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .card .muted{color:var(--muted);font-size:13px}
 .card a{color:var(--accent)}
 .card figure{margin:4px 0 0}
+.card figure.sketch{margin:14px auto 0;max-width:300px;opacity:.9}
+.sketch svg{width:100%;height:auto;display:block;overflow:visible}
+.sketch path,.sketch circle,.sketch rect,.sketch ellipse,.sketch polygon{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sketch .a{stroke:var(--accent)}.sketch .dash{stroke-dasharray:5 5}
+.sketch .f{fill:var(--panel);stroke:var(--muted)}.sketch .fa{fill:var(--accent);stroke:var(--accent)}
+.sketch text{fill:var(--muted);stroke:none;font-family:Caveat,var(--body);font-weight:600}.sketch .ta{fill:var(--accent)}
 .card img{width:100%;border-radius:10px;background:#fff;border:1px solid var(--line);display:block}
 .card figcaption{font-size:11px;color:var(--muted);margin-top:4px}
 .gal.lab3 figure{margin:0}.gal.lab3 .wide{grid-column:1/-1}.gal.lab3 img{height:220px;object-fit:cover}.gal.lab3 .wide img{height:auto;aspect-ratio:900/334;object-fit:cover}
@@ -654,13 +660,66 @@ function caption(n){
   const b = document.getElementById("capMore"); if (b) b.onclick = () => openCard(n, gN.selectAll("g.node").filter(d => d === n).node());
 }
 
+/* ---------- hand-drawn sketches for cards without pictures ---------- */
+const SKF = `<defs><filter id="skr" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter></defs>`;
+const c_ = (x, y, r, cls = "") => `<circle cx="${x}" cy="${y}" r="${r}" class="${cls}"/>`;
+const p_ = (d, cls = "") => `<path d="${d}" class="${cls}"/>`;
+const t_ = (x, y, s, cls = "", fs = 13) => `<text x="${x}" y="${y}" class="${cls}" font-size="${fs}">${s}</text>`;
+const head = (x, y, s = 1, cls = "") => c_(x, y, 7 * s, cls) + p_(`M${x - 11 * s} ${y + 24 * s} Q${x} ${y + 4 * s} ${x + 11 * s} ${y + 24 * s}`, cls);
+const atom = (x, y, r = 7, cls = "f") => c_(x, y, r, cls);
+const chain = (pts, cls = "") => p_("M" + pts.map(p => p.join(" ")).join(" L"), cls) + pts.map(p => atom(p[0], p[1], 5, cls ? "fa" : "f")).join("");
+const SK = {
+  root: head(60, 60, 2) + p_("M98 40 Q110 20 140 22 Q190 18 196 48 Q200 78 160 80 Q128 84 112 70 L96 82 L102 64 Q94 54 98 40") + chain([[130, 58], [146, 42], [164, 54], [180, 40]], "a"),
+  "b-sci": p_("M40 20 h20 M44 20 v30 L24 96 Q22 104 30 104 h40 Q78 104 76 96 L56 50 V20") + p_("M30 82 h40", "a") + chain([[120, 70], [140, 48], [162, 62], [184, 40], [206, 56]], "a") + c_(48, 92, 3, "fa") + c_(40, 86, 2, "fa"),
+  "m-deputy": c_(120, 22, 11) + c_(120, 60, 11, "a") + t_(112, 65, "#2", "ta", 11) + [70, 120, 170].map(x => c_(x, 100, 9)).join("") + p_("M120 33 V49 M120 71 V80 M70 80 H170 M70 80 V91 M120 80 V91 M170 80 V91"),
+  "m-grants": p_("M40 14 h70 l16 16 v80 h-86 Z M110 14 v16 h16 M54 46 h54 M54 60 h54 M54 74 h36") + [0, 1, 2, 3].map(i => `<ellipse cx="180" cy="${98 - i * 12}" rx="26" ry="8" class="a"/>`).join("") + t_(173, 66, "€", "ta", 20),
+  "m-team": `<ellipse cx="120" cy="82" rx="70" ry="18"/>` + [[60, 40], [95, 26], [145, 26], [180, 40], [80, 96], [160, 96]].map(([x, y], i) => head(x, y - 6, .8, i < 2 ? "a" : "")).join(""),
+  "m-events": p_("M96 40 h48 v14 h-48 Z M104 54 l-6 50 h44 l-6 -50") + t_(106, 51, "CECAM", "ta", 9) + [30, 60, 180, 210].map(x => head(x, 84, .8)).join("") + p_("M150 22 q20 -14 40 0", "a"),
+  "m-service": p_("M40 12 h70 v96 h-70 Z M52 30 h46 M52 44 h46 M52 58 h30") + c_(140, 64, 24, "a") + p_("M157 81 L190 108", "a") + p_("M128 64 l8 9 l16 -18", "a"),
+  "s-learn": p_("M10 104 h40 v-20 h45 v-20 h45 v-20 h45 v-20 h45") + p_("M24 96 c-6 -8 6 -14 6 -4 c0 -10 12 -4 6 4 l-6 7 z", "a") + chain([[62, 74], [72, 66], [82, 74]], "") + p_("M110 52 q12 -14 22 0 q-12 10 -22 0 M110 52 l22 0", "a") + p_("M155 36 c6 -10 12 10 18 0 c6 -10 12 10 18 0") + p_("M206 20 v-10 h18 v10 M206 20 a9 9 0 0 0 18 0", "a"),
+  "s-prob": [0, 1, 2, 3].map(r => [0, 1, 2, 3, 4].map(c => `<rect x="${30 + c * 30 + (r % 2) * 15}" y="${30 + r * 18}" width="28" height="16" rx="2" class="${r === 1 && c === 2 ? "a" : ""}"/>`).join("")).join("") + p_("M196 20 l20 -6 l4 12 l-20 6 z M206 30 L190 70", "a"),
+  "s-bridge": p_("M20 100 Q120 10 220 100 M20 100 H220") + [60, 90, 120, 150, 180].map(x => p_(`M${x} 100 V${100 - (1 - Math.pow((x - 120) / 100, 2)) * 64}`)).join("") + p_("M22 60 h16 M26 60 v16 l-10 22 h28 l-10 -22 v-16", "a") + `<rect x="190" y="52" width="36" height="26" rx="3" class="a"/>` + p_("M200 86 h16", "a"),
+  "s-org": `<rect x="40" y="24" width="160" height="84" rx="6"/>` + p_("M40 44 H200 M70 16 v14 M170 16 v14") + [0, 1, 2, 3, 4, 5, 6, 7].map(i => p_(`M${58 + (i % 4) * 38} ${62 + Math.floor(i / 4) * 26} l6 7 l12 -12`, i % 3 ? "" : "a")).join(""),
+  "s-mentor": head(50, 40, 1.4, "a") + `<rect x="90" y="16" width="120" height="60" rx="4"/>` + chain([[110, 56], [130, 36], [150, 50], [175, 30], [195, 44]], "") + p_("M68 56 L104 42", "a") + [120, 160, 200].map(x => head(x, 92, .7)).join(""),
+  "s-comm": head(46, 56, 1.4, "a") + p_("M80 20 h120 q10 0 10 10 v40 q0 10 -10 10 h-90 l-16 14 l2 -14 h-6 q-10 0 -10 -10 v-40 q0 -10 10 -10") + `<ellipse cx="145" cy="50" rx="26" ry="9" class="a"/><ellipse cx="145" cy="50" rx="26" ry="9" transform="rotate(60 145 50)" class="a"/><ellipse cx="145" cy="50" rx="26" ry="9" transform="rotate(-60 145 50)" class="a"/>` + c_(145, 50, 3, "fa"),
+  "s-qm": c_(120, 60, 5, "fa") + p_("M120 60 C80 20 60 40 70 60 C60 80 80 100 120 60 C160 20 180 40 170 60 C180 80 160 100 120 60", "a") + p_("M120 60 C100 10 140 10 120 60 C100 110 140 110 120 60"),
+  "s-dft": [14, 26, 40, 56].map((r, i) => `<ellipse cx="120" cy="60" rx="${r + 30}" ry="${r}" class="${i ? "" : "a"}"/>`).join("") + c_(95, 60, 6, "fa") + c_(145, 60, 6, "fa") + t_(196, 22, "ρ(r)", "ta", 14),
+  "s-aimd": chain([[60, 70], [90, 50], [120, 66], [150, 46]], "") + p_("M150 46 q30 -30 50 0 t40 10", "a dash") + `<ellipse cx="90" cy="50" rx="20" ry="9" class="a"/>` + p_("M20 100 l10 -16 l8 10 l12 -18", "a"),
+  "s-md": `<rect x="40" y="14" width="160" height="92" rx="4"/>` + [[70, 40], [120, 34], [168, 50], [90, 78], [146, 84], [60, 90]].map(([x, y], i) => atom(x, y, 7) + p_(`M${x} ${y} l${[18, -14, 10, 20, -16, 14][i]} ${[-10, 12, 16, -6, -12, -14][i]}`, "a")).join(""),
+  "s-cg": [[60, 40], [70, 56], [54, 62], [140, 40], [152, 54], [136, 64], [96, 84], [112, 92], [92, 100]].map(([x, y]) => atom(x, y, 5)).join("") + c_(61, 53, 18, "a") + c_(143, 52, 18, "a") + c_(100, 92, 16, "a") + p_("M78 60 L126 52 M74 66 L88 80 M128 64 L114 80", "a"),
+  "s-bd": p_("M30 90 l14 -10 l-6 -14 l18 4 l10 -16 l-14 -8 l20 -10 l12 14 l14 -6 l-4 18 l20 6 l10 -14 l16 2 l-6 -18 l20 -10 l14 16", "a") + atom(30, 90, 7) + atom(204, 34, 7, "fa"),
+  "s-ff": atom(50, 50, 9) + p_("M59 50 l6 -8 l6 16 l6 -16 l6 16 l6 -16 l6 8", "a") + atom(105, 50, 9) + p_("M150 100 Q160 20 180 70 Q200 110 230 40") + p_("M140 104 H234 M140 104 V20") + c_(178, 64, 3, "fa"),
+  "s-us": p_("M20 70 Q60 20 90 60 Q120 100 150 50 Q180 10 220 70") + [50, 90, 130, 170, 200].map(x => p_(`M${x - 18} 30 Q${x} 110 ${x + 18} 30`, "a dash")).join(""),
+  "s-mtd": p_("M20 40 Q60 110 100 70 Q120 50 140 74 Q180 110 220 40") + [[60, 82], [70, 78], [64, 72], [160, 84], [170, 80]].map(([x, y]) => p_(`M${x - 14} ${y + 10} Q${x} ${y - 14} ${x + 14} ${y + 10}`, "a")).join(""),
+  "s-remd": [0, 1, 2, 3].map(i => p_(`M30 ${24 + i * 24} H210`) + t_(8, 28 + i * 24, ["T1", "T2", "T3", "T4"][i], "", 11)).join("") + p_("M80 24 l20 24 M100 24 l-20 24 M150 72 l20 24 M170 72 l-20 24 M120 48 l16 24 M136 48 l-16 24", "a"),
+  "s-fep": chain([[30, 60], [50, 44], [70, 60]], "") + p_("M100 60 h40 m-8 -6 l8 6 l-8 6", "a") + chain([[170, 60], [190, 44], [210, 60]], "a") + p_("M40 100 H200") + c_(120, 100, 6, "fa") + t_(32, 116, "λ=0", "", 10) + t_(186, 116, "λ=1", "", 10),
+  "s-hpc": [0, 1, 2].map(i => `<rect x="${30 + i * 50}" y="14" width="40" height="92" rx="3"/>` + [0, 1, 2, 3, 4].map(j => p_(`M${36 + i * 50} ${28 + j * 16} h18`) + c_(62 + i * 50, 28 + j * 16, 2, (i + j) % 2 ? "fa" : "f")).join("")).join("") + `<rect x="184" y="40" width="50" height="40" rx="3" class="a"/>` + t_(190, 64, "$ _", "ta", 12),
+  "s-py": t_(20, 70, "{ }", "ta", 34) + [0, 1, 2].map(i => `<rect x="${86 + i * 42}" y="48" width="30" height="24" rx="3"/>` + p_(`M${116 + i * 42} 60 h12`, "a")).join("") + p_("M214 84 V40 M214 84 h20 M216 76 l6 -10 l6 4 l6 -14", "a"),
+  "s-lang": p_("M20 20 h80 v34 h-56 l-12 10 v-10 h-12 z") + t_(30, 43, "Привет", "", 12) + p_("M90 64 h70 v34 h-50 l-12 10 v-10 h-8 z", "a") + t_(102, 87, "Hello", "ta", 13) + p_("M168 22 h56 v34 h-12 v10 l-12 -10 h-32 z") + t_(182, 45, "Moi!", "", 13),
+  "b-edu": p_("M70 40 L120 20 L170 40 L120 60 Z M90 48 v20 q30 16 60 0 v-20 M166 42 v26", "a") + [0, 1, 2].map(i => `<rect x="${60 + i * 6}" y="${84 + i * 0}" width="120" height="10" rx="2" transform="translate(0 ${i * 10 - 10})"/>`).join(""),
+  "ed-phd": p_("M30 40 L70 24 L110 40 L70 56 Z M46 46 v16 q24 12 48 0 v-16", "a") + chain([[130, 80], [150, 60], [170, 76], [190, 56], [212, 70], [226, 50]], ""),
+  "ed-msc": p_("M20 90 Q80 70 120 84 T220 76 M20 98 Q80 78 120 92 T220 84") + [[60, 60], [110, 54], [160, 62], [196, 50]].map(([x, y]) => `<polygon points="${x},${y - 10} ${x + 9},${y - 4} ${x + 9},${y + 6} ${x},${y + 12} ${x - 9},${y + 6} ${x - 9},${y - 4}" class="a"/>`).join(""),
+  "ed-bsc": p_("M10 70 h50 l8 -30 l10 56 l10 -40 l6 14 h50", "a") + p_("M170 14 C200 34 150 54 180 74 C210 94 160 104 170 110 M200 14 C170 34 220 54 190 74 C160 94 210 104 200 110") + [24, 44, 64, 84].map(y => p_(`M176 ${y} h18`)).join(""),
+  "b-tea": `<rect x="40" y="14" width="160" height="80" rx="4"/>` + p_("M60 74 Q90 30 120 60 T180 40", "a") + p_("M120 94 v18 M100 112 h40"),
+  t1: head(40, 60, 1.3, "a") + `<rect x="80" y="14" width="150" height="86" rx="4"/>` + p_("M96 86 V28 M96 86 H216") + p_("M100 80 Q130 80 150 50 T210 36", "a") + t_(160, 82, "T", "", 11),
+  t2: `<rect x="30" y="14" width="180" height="86" rx="4"/>` + [[70, 40], [100, 56], [130, 40], [160, 60], [86, 78], [150, 82]].map(([x, y]) => atom(x, y, 6)).join("") + p_("M70 40 L100 56 L130 40 M100 56 L86 78", "a"),
+  t3: [0, 1, 2].map(i => `<rect x="30" y="${12 + i * 34}" width="180" height="26" rx="3" class="${i === 1 ? "a" : ""}"/>` + t_(36, 30 + i * 34, `[${i + 1}]`, i === 1 ? "ta" : "", 10) + p_(`M62 ${25 + i * 34} h${[90, 120, 60][i]}`)).join(""),
+  "t-sup": [0, 1, 2, 3].map(i => `<rect x="${70 - i * 4}" y="${90 - i * 16}" width="100" height="14" rx="2" class="${i === 3 ? "a" : ""}"/>`).join("") + p_("M100 24 L130 12 L160 24 L130 36 Z M156 26 v14", "a"),
+  "z-mkt": p_("M30 100 H220 M30 100 V14") + p_("M36 86 L70 70 L100 78 L140 50", "") + p_("M140 50 L180 36 L214 20", "a dash") + c_(140, 50, 4, "fa"),
+  "z-ci": c_(80, 60, 26) + c_(160, 60, 26) + p_("M106 60 h28 M54 60 l-14 -30 M186 60 l14 -30") + c_(80, 60, 10, "a") + c_(160, 60, 10, "a"),
+  "z-data": [[30, 40], [40, 70], [26, 90], [50, 30], [56, 96]].map(([x, y]) => `<rect x="${x}" y="${y}" width="10" height="10"/>`).join("") + p_("M80 30 H140 L118 64 V96 H102 V64 Z", "a") + p_("M160 100 V64 M180 100 V44 M200 100 V54 M220 100 V30") + p_("M150 100 H230"),
+  "z-team": [[60, 40], [120, 24], [180, 40], [90, 90], [150, 90]].map(([x, y], i) => head(x, y, .9, i === 1 ? "a" : "")).join("") + p_("M120 50 L60 70 M120 50 L180 70 M120 50 L90 100 M120 50 L150 100", "dash"),
+  "h-game": p_("M60 50 q60 -20 120 0 q24 10 20 40 q-4 20 -24 10 l-20 -14 h-52 l-20 14 q-20 10 -24 -10 q-4 -30 20 -40") + p_("M86 62 v20 M76 72 h20", "a") + c_(156, 66, 5, "fa") + c_(170, 78, 5, "f")
+};
+function sketchFor(d){ const s = SK[d.id]; return s ? `<figure class="sketch" aria-hidden="true"><svg viewBox="0 0 240 120">${SKF}<g filter="url(#skr)">${s}</g></svg></figure>` : ""; }
+
 /* ---------- card that grows out of the circle ---------- */
 const stage = document.getElementById("stage"), card = document.getElementById("card"), cardBody = document.getElementById("cardBody"), scrim = document.getElementById("scrim");
 let lastEl = null, lastNode = null;
 function circleRect(el){ const c = el && el.querySelector(".halo"); return c ? c.getBoundingClientRect() : {left:innerWidth / 2, top:innerHeight / 2, width:10, height:10}; }
 function openCard(d, el){
   lastEl = el; lastNode = d;
-  cardBody.innerHTML = d.card(); stage.hidden = false; if (d.after) d.after(cardBody); scrim.classList.add("on"); card.scrollTop = 0;
+  cardBody.innerHTML = d.card(); if (!cardBody.querySelector("img,svg,.geomap")) cardBody.insertAdjacentHTML("beforeend", sketchFor(d)); stage.hidden = false; if (d.after) d.after(cardBody); scrim.classList.add("on"); card.scrollTop = 0;
   const cr = circleRect(el), fr = card.getBoundingClientRect();
   const dx = (cr.left + cr.width / 2) - (fr.left + fr.width / 2), dy = (cr.top + cr.height / 2) - (fr.top + fr.height / 2), s = Math.max(.02, cr.width / fr.width);
   if (!RM) {
