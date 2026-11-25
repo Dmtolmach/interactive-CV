@@ -251,8 +251,9 @@ function paperCard(p){
   ${p.ga ? `<figure><img src="ga/${esc(p.ga)}.jpg" alt="Graphical abstract of the paper" loading="lazy"><figcaption>${esc(p.ga_kind || "Graphical abstract")}</figcaption></figure>` : ""}`;
 }
 
+PUB.fields.forEach(f => { if (f.id === "methods") { f.summary = "Reviews on combining simulations with experiments and on modelling surfactants in oils."; f.period = f.period.replace("2009", String(Math.min(...PUB.papers.filter(p => p.field === "methods" && p.n !== 28).map(p => p.year)))); } });
 const fieldNodes = PUB.fields.map(f => {
-  const ps = PUB.papers.filter(p => p.field === f.id).sort((a, b) => b.year - a.year);
+  const ps = PUB.papers.filter(p => p.field === f.id && p.n !== 28).sort((a, b) => b.year - a.year);
   return N({ id:"f-"+f.id, label:f.short || f.name, col:FCOL[f.id], icon:PUB.icons[f.id], kind:"field",
     cap:`${f.period} · ${f.place}. ${f.summary}`,
     children: ps.map(p => ({ id:"p"+p.n, label:p.short || p.title, col:FCOL[f.id], img:p.ga, year:p.year, kind:"paper",
@@ -388,7 +389,7 @@ const management = { id:"b-man", label:"Management & leadership", col:"--b-man",
         <h4>Doctoral students (Aalto)</h4><ul>${phd.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
         <h4>Master's</h4><p class="muted">Aalto: Antti Mäkynen, Can Gürer Yücel, Linnéa Hammarberg (2025). St Petersburg State University: Georgy Mamistvalov (2021), Oksana Boyko (2019), Dmitry Ovodok (2018).</p>
         <h4>Bachelor's</h4><p class="muted">Aalto: Henri-Mikael Suominen (2026), Marika Laine (2025), Richard Sobek (2025). SPbU: Oksana Boyko (2017).</p>
-        <h4>Disciplines I work across</h4><div class="chips"><span class="chip">physics</span><span class="chip">physical chemistry</span><span class="chip">polymer science</span><span class="chip">protein engineering</span><span class="chip">wood and cellulose science</span><span class="chip">chemical engineering</span><span class="chip">medicine</span></div>
+        <h4>Disciplines I work across</h4><div class="chips"><span class="chip">physics</span><span class="chip">physical chemistry</span><span class="chip">polymer science</span><span class="chip">protein engineering</span><span class="chip">wood and cellulose science</span><span class="chip">chemical engineering</span></div>
         <p class="muted">Advisory groups for PhD students (Tiia Siivola, Efstathia Mantzari, 2025). State examination committee, SPbU (2021–2022). </p>
         ${chips([4,6,0])}` },
     { id:"m-events", label:"Event organization", col:"--b-man", kind:"leaf", r:22, glyph:"●",
@@ -448,8 +449,8 @@ const skills = { id:"b-skl", label:"Skills", col:"--b-skl", icon:IC.skl, kind:"b
       S("s-mic","Microscopy","Microscopy of ferrofluids; AFM combined with MD in a review.",[29,12]),
       S("s-cd","Circular dichroism (CD)","CD spectroscopy to follow the secondary structure of proteins and peptides.",[2]),
       S("s-ftir","FTIR","Infrared spectroscopy of chemical bonds and molecular structure.",[2,9]),
-      S("s-pcr","PCR","Polymerase chain reaction, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[28]),
-      S("s-ep","Electrophoresis","Gel electrophoresis, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[28])
+      S("s-pcr","PCR","Polymerase chain reaction, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[], `<div class="chips"><button class="chip" type="button" data-goto="ed-bsc">BSc and my first paper</button></div>`),
+      S("s-ep","Electrophoresis","Gel electrophoresis, from my medical-biophysics training and the clinical study on postpericardiotomy syndrome.",[], `<div class="chips"><button class="chip" type="button" data-goto="ed-bsc">BSc and my first paper</button></div>`)
     ]},
     { id:"s-lang", label:"Languages", col:"--b-skl", kind:"leaf", glyph:"Aa", r:16,
       card:() => `<div class="meta"><span class="tag acc">Skills</span></div><h2>Languages</h2><ul><li><b>Russian</b>: native</li><li><b>English</b>: C1</li><li><b>Finnish</b>: A2</li></ul>` }
@@ -504,8 +505,10 @@ const mente = { id:"b-biz", label:"Marketing consulting", col:"--b-biz", photo:{
     B("z-team","Led a cross-functional team","☰","I led analysts and specialists from different backgrounds as CEO.")
   ]};
 
+const firstPaper = () => { const p = byN[28]; return `<h4>My first paper</h4><p>My first paper, a ${p.year} clinical study of postpericardiotomy syndrome, comes from my medical-biophysics studies.</p><p class="muted">${esc(p.title)}. <i>${esc(p.venue)}</i>, ${p.year}.</p>`; };
+if (byN[27]) byN[27].short = "Cellulose–phosphate composite";
 const ED = (id, label, glyph, years, title, where, text) => ({ id, label, col:"--b-edu", kind:"leaf", r:22, glyph,
-  card:() => `<div class="meta"><span class="tag acc">Education</span><span>${esc(years)}</span></div><h2>${esc(title)}</h2><p>${esc(where)}.</p>${text ? `<p>${text}</p>` : ""}${id === "ed-msc" ? chips([28]) : ""}` });
+  card:() => `<div class="meta"><span class="tag acc">Education</span><span>${esc(years)}</span></div><h2>${esc(title)}</h2><p>${esc(where)}.</p>${text ? `<p>${text}</p>` : ""}${id === "ed-bsc" ? firstPaper() : ""}${id === "ed-msc" ? `<h4>Papers from my Master's thesis</h4><p>My Master's work on bacterial cellulose and calcium phosphates led to a 2010 paper in Polymer Science and to my first-author paper in Langmuir.</p>${chips([26, 27])}` : ""}` });
 const education = { id:"b-edu", label:"Education", col:"--b-edu", icon:IC.edu, kind:"branch",
   cap:"From medical biophysics to the physics of polymers: BSc 2008, MSc 2010, PhD 2015, all in St Petersburg.",
   card:() => `<div class="meta"><span class="tag acc">Education</span></div><h2>Education</h2><ul class="tl">
@@ -515,7 +518,7 @@ const education = { id:"b-edu", label:"Education", col:"--b-edu", icon:IC.edu, k
     <h4>Languages</h4><p>Russian (native), English (C1), Finnish (A2)</p>`,
   children:[
     ED("ed-phd","PhD 2015","PhD","2010–2015","PhD in physics of macromolecular compounds","Institute of Macromolecular Compounds, Russian Academy of Sciences (IMC RAS), St Petersburg","I did my PhD while working as a Junior Researcher in Prof. Sergey Lyulin's Laboratory of theory and modelling of polymer systems."),
-    ED("ed-msc","MSc 2010","MSc","2010","MSc in materials and technologies for medicine and biotechnology","Peter the Great St Petersburg Polytechnic University","Programme: physical and chemical basis for the development of new materials and technologies in medicine and biotechnology. Included 3 weeks of pedagogical training. My first paper, a 2009 clinical study of postpericardiotomy syndrome, comes from my medical-biophysics studies."),
+    ED("ed-msc","MSc 2010","MSc","2010","MSc in materials and technologies for medicine and biotechnology","Peter the Great St Petersburg Polytechnic University","Programme: physical and chemical basis for the development of new materials and technologies in medicine and biotechnology. Included 3 weeks of pedagogical training."),
     ED("ed-bsc","BSc 2008","BSc","2008","BSc in medical biophysics","Peter the Great St Petersburg Polytechnic University","Included a 119-hour course in psychology and pedagogy.")
   ]
 };
