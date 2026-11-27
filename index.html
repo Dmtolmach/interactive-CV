@@ -48,6 +48,7 @@ h1{font:700 clamp(22px,3.6vw,34px)/1.05 var(--display);margin:6px 0 4px;letter-s
 #qres .s{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 #qres mark{background:color-mix(in srgb,var(--accent) 28%,transparent);color:inherit;border-radius:3px;padding:0 1px}
 #qres .none{color:var(--muted);font-size:13px;cursor:default}
+#qres .note{font-size:11px;padding:6px 10px 2px;border-top:1px solid var(--line);margin-top:4px;border-radius:0}
 @media (max-width:640px){.hr{align-items:stretch;width:100%}.srch{width:100%}#qres{left:0;right:auto;width:100%}}
 .links{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
 .links a{font:500 12px var(--mono);color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px}
@@ -529,7 +530,7 @@ const mente = { id:"b-biz", label:"Marketing consulting", col:"--b-biz", photo:{
   children:[
     B("z-mkt","Market analysis & forecasting","↗","I directed strategic marketing across SEO, content marketing, digital advertising, CRM and email marketing to drive conversions and ROI. Client conversion rates rose by up to 30%. I monitored KPIs, kept refining campaign strategies, and advised on acquisition, retention and loyalty."),
     B("z-ci","Competitive intelligence","◎","I launched and brought to market 10 new products across different industries, which expanded our clients' brands and made them more competitive."),
-    B("z-data","Python & Excel pipelines","{}","I managed traffic sources and scaled campaigns for steady growth. I also designed and optimized customer experience (CX) and fixed UX pain points, which cut churn by 29%."),
+    B("z-data","Python & Excel pipelines","{}","I used my Python skills in data analysis and scripting for market analysis. I also managed traffic sources and scaled campaigns for steady growth."),
     B("z-team","Led a cross-functional team","☰","I managed and led a remote, cross-functional team, with structured reporting and weekly reviews, and turned a team of 8 into a cohesive, high-performing unit. I also oversaw client communication.")
   ]};
 
@@ -813,6 +814,16 @@ let tm;addEventListener("resize",()=>{clearTimeout(tm);tm=setTimeout(lay,200)});
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   idx.forEach(e => { e.l = norm(e.label); e.t = norm(e.text); });
   const hl = (s, words) => { let out = esc(s); words.forEach(w => { if (w.length > 1) out = out.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); }); return out; };
+  /* search log: anonymous words only (Google Form adds the time). Fill LOG_FORM with the form's formResponse URL and entry field */
+  const LOG_FORM = { url: "https://docs.google.com/forms/d/e/1FAIpQLSeCDhcj4TRlDrww6NgcRrkwUKGhjeuVG53zVM4mL-scs2YueA/formResponse", field: "entry.137813152" };
+  let lastLogged = "", logT = 0;
+  const visitor = (() => { let v = ""; try { v = localStorage.getItem("cvVisitor") || ""; } catch (e) {}
+    if (!/^v-[a-z0-9]{6}$/.test(v)) { v = "v-" + Math.random().toString(36).slice(2, 8).padEnd(6, "0"); try { localStorage.setItem("cvVisitor", v); } catch (e) {} } return v; })();
+  function logSearch(raw, opened){
+    const term = raw.trim().replace(/\s+/g, " ").slice(0, 80); if (term.length < 2) return;
+    const key = term.toLowerCase() + "|" + (opened || ""); if (key === lastLogged) return; lastLogged = key;
+    if (LOG_FORM.url && LOG_FORM.field) { try { const fd = new FormData(); fd.append(LOG_FORM.field, `[${visitor}] ` + (opened ? `${term} -> ${opened}` : term)); fetch(LOG_FORM.url, { method:"POST", mode:"no-cors", body:fd }).catch(() => {}); } catch (e) {} }
+  }
   let hits = [], sel = 0;
   function run(){
     const raw = q.value.trim(), words = norm(raw).split(/\s+/).filter(Boolean);
@@ -824,11 +835,12 @@ let tm;addEventListener("resize",()=>{clearTimeout(tm);tm=setTimeout(lay,200)});
         const snip = at > -1 ? (at > 40 ? "…" : "") + e.text.slice(Math.max(0, at - 40), at + 80) + "…" : (e.n.cap || "").slice(0, 110);
         return `<li role="option" data-i="${i}" aria-selected="${i === 0}"><span class="k">${esc(e.path)}</span><b>${hl(e.label, words)}</b>${snip ? `<span class="s">${hl(snip, words)}</span>` : ""}</li>`; }).join("")
       : `<li class="none">Nothing found for “${esc(raw)}”</li>`;
+    box.insertAdjacentHTML("beforeend", `<li class="none note">Searches are saved anonymously to improve this CV.</li>`);
     box.hidden = false;
   }
-  function pick(i){ const h = hits[i]; if (!h) return; box.hidden = true; q.blur(); goTo(h.e.n.id); }
+  function pick(i){ const h = hits[i]; if (!h) return; clearTimeout(logT); logSearch(q.value, h.e.label); box.hidden = true; q.blur(); goTo(h.e.n.id); }
   function mark(){ box.querySelectorAll("li[data-i]").forEach(li => li.setAttribute("aria-selected", +li.dataset.i === sel)); const c = box.querySelector(`li[data-i="${sel}"]`); if (c) c.scrollIntoView({block:"nearest"}); }
-  q.addEventListener("input", run);
+  q.addEventListener("input", () => { run(); clearTimeout(logT); logT = setTimeout(() => logSearch(q.value, ""), 2500); });
   q.addEventListener("focus", () => { if (q.value.trim()) run(); });
   q.addEventListener("keydown", e => {
     if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(hits.length - 1, sel + 1); mark(); }
