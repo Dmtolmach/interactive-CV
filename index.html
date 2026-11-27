@@ -35,6 +35,20 @@ header>*{pointer-events:auto}
 .eyebrow{font:500 11px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 h1{font:700 clamp(22px,3.6vw,34px)/1.05 var(--display);margin:6px 0 4px;letter-spacing:-.01em}
 .role{color:var(--muted);font-size:13px;margin:0;max-width:52ch}
+.hr{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.srch{position:relative;width:min(300px,100%)}
+.srch svg{position:absolute;left:10px;top:50%;width:14px;height:14px;transform:translateY(-50%);fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;pointer-events:none}
+.srch input{width:100%;box-sizing:border-box;font:400 13px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 12px 7px 30px;outline:none}
+.srch input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+#qres{position:absolute;right:0;top:calc(100% + 6px);width:min(360px,calc(100vw - 32px));max-height:min(60vh,420px);overflow:auto;margin:0;padding:6px;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);z-index:6}
+#qres li{padding:8px 10px;border-radius:10px;cursor:pointer}
+#qres li[aria-selected="true"],#qres li:hover{background:color-mix(in srgb,var(--accent) 12%,var(--panel))}
+#qres .k{display:block;font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#qres b{display:block;font:600 13px var(--body);color:var(--fg)}
+#qres .s{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+#qres mark{background:color-mix(in srgb,var(--accent) 28%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+#qres .none{color:var(--muted);font-size:13px;cursor:default}
+@media (max-width:640px){.hr{align-items:stretch;width:100%}.srch{width:100%}#qres{left:0;right:auto;width:100%}}
 .links{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start}
 .links a{font:500 12px var(--mono);color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 10px}
 .links a:hover{border-color:var(--accent);color:var(--accent)}
@@ -150,12 +164,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
     <h1>Dmitry Tolmachev</h1>
     <p class="role">Research Fellow at Aalto University. Molecular simulation of soft and biological materials, from bone-like composites to spider silk and ferrofluids.</p>
   </div>
+  <div class="hr">
   <nav class="links" aria-label="Profiles">
     <a href="https://scholar.google.com/citations?user=OQtj-R4AAAAJ" target="_blank" rel="noopener">Scholar</a>
     <a href="https://orcid.org/0000-0002-9699-100X" target="_blank" rel="noopener">ORCID</a>
     <a href="https://www.linkedin.com/in/dmitry-tolmachev-158806254/" target="_blank" rel="noopener">LinkedIn</a>
     <a href="mailto:tolmach.dm@gmail.com" title="tolmach.dm@gmail.com">Email</a>
   </nav>
+  <div class="srch" role="search">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>
+    <input id="q" type="search" placeholder="Search keywords: cellulose, Martini, grants…" aria-label="Search the CV by keyword" autocomplete="off" spellcheck="false">
+    <ul id="qres" role="listbox" hidden></ul>
+  </div>
+  </div>
 </header>
 
 <div id="bgw" aria-hidden="true"></div>
@@ -779,5 +800,43 @@ function lay(){box.innerHTML="";s=7;const w=innerWidth,h=innerHeight,k=Math.max(
     for(let i=0;i<80&&!ok;i++){const x=R()*(w-ew),y=R()*(h-eh);if(placed.every(p=>x+ew<p[0]-8||x>p[0]+p[2]+8||y+eh<p[1]-5||y>p[1]+p[3]+5)){placed.push([x,y,ew,eh]);el.style.left=(x+(ew-bw)/2)+"px";el.style.top=(y+(eh-bh)/2)+"px";ok=true}}
     if(!ok)el.remove();}}
 let tm;addEventListener("resize",()=>{clearTimeout(tm);tm=setTimeout(lay,200)});lay();if(document.fonts)document.fonts.ready.then(lay);
+})();
+</script>
+<script>
+/* ---------- keyword search ---------- */
+(function(){
+  const q = document.getElementById("q"), box = document.getElementById("qres"); if (!q || typeof all === "undefined") return;
+  const tmp = document.createElement("div"), idx = [];
+  const pathOf = n => { const a = []; for (let p = n.parent; p && p.parent; p = p.parent) a.unshift(p.label); return a.join(" › ") || "Home"; };
+  all.forEach(n => { if (!n.parent) return; let body = ""; try { tmp.innerHTML = n.card ? n.card().replace(/></g, "> <") : ""; tmp.querySelectorAll(".meta,h2,figcaption,.maptip,.mapbtns").forEach(x => x.remove()); body = tmp.textContent; } catch (e) {}
+    idx.push({ n, label:n.label, path:pathOf(n), text:(n.label + " " + (n.cap || "") + " " + body).replace(/\s+/g, " ") }); });
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  idx.forEach(e => { e.l = norm(e.label); e.t = norm(e.text); });
+  const hl = (s, words) => { let out = esc(s); words.forEach(w => { if (w.length > 1) out = out.replace(new RegExp("(" + w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"), "<mark>$1</mark>"); }); return out; };
+  let hits = [], sel = 0;
+  function run(){
+    const raw = q.value.trim(), words = norm(raw).split(/\s+/).filter(Boolean);
+    if (!words.length) { box.hidden = true; return; }
+    hits = idx.map(e => { let s = 0; for (const w of words) { if (!e.t.includes(w)) return null; s += e.l.includes(w) ? 10 : 1; if (e.l.startsWith(w)) s += 5; } return { e, s }; })
+      .filter(Boolean).sort((a, b) => b.s - a.s || a.e.label.length - b.e.label.length).slice(0, 12);
+    sel = 0;
+    box.innerHTML = hits.length ? hits.map((h, i) => { const e = h.e, w = words[0], at = e.t.indexOf(w, e.l.length);
+        const snip = at > -1 ? (at > 40 ? "…" : "") + e.text.slice(Math.max(0, at - 40), at + 80) + "…" : (e.n.cap || "").slice(0, 110);
+        return `<li role="option" data-i="${i}" aria-selected="${i === 0}"><span class="k">${esc(e.path)}</span><b>${hl(e.label, words)}</b>${snip ? `<span class="s">${hl(snip, words)}</span>` : ""}</li>`; }).join("")
+      : `<li class="none">Nothing found for “${esc(raw)}”</li>`;
+    box.hidden = false;
+  }
+  function pick(i){ const h = hits[i]; if (!h) return; box.hidden = true; q.blur(); goTo(h.e.n.id); }
+  function mark(){ box.querySelectorAll("li[data-i]").forEach(li => li.setAttribute("aria-selected", +li.dataset.i === sel)); const c = box.querySelector(`li[data-i="${sel}"]`); if (c) c.scrollIntoView({block:"nearest"}); }
+  q.addEventListener("input", run);
+  q.addEventListener("focus", () => { if (q.value.trim()) run(); });
+  q.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(hits.length - 1, sel + 1); mark(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); mark(); }
+    else if (e.key === "Enter") { e.preventDefault(); pick(sel); }
+    else if (e.key === "Escape") { q.value = ""; box.hidden = true; q.blur(); }
+  });
+  box.addEventListener("mousedown", e => { const li = e.target.closest("li[data-i]"); if (li) { e.preventDefault(); pick(+li.dataset.i); } });
+  document.addEventListener("pointerdown", e => { if (!e.target.closest(".srch")) box.hidden = true; });
 })();
 </script>
